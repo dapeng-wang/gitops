@@ -1,0 +1,124 @@
+{{- if .Values.application.deployment.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.application.name }}
+  {{ include "metadata.labels" . }}
+  annotations:
+    reloader.stakater.com/auto: "true"
+spec:
+  selector:
+    matchLabels:
+      app:  {{ .Values.application.name }}
+      name: {{ .Values.application.name }}
+  replicas: {{ .Values.deployment.replicaCount }}
+  revisionHistoryLimit: 2
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+      labels:
+        app:  {{ .Values.application.name }}
+        name: {{ .Values.application.name }}
+        app.kubernetes.io/part-of: {{ .Values.application.group | default .Values.application.name }}
+    spec:
+      terminationGracePeriodSeconds: 30
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: {{ .Values.application.name }}
+      containers:
+{{- range .Values.deployment.containers }}
+        - name: {{ .name }}
+          image: "{{ .image }}"
+          imagePullPolicy: "Always"
+{{- if hasKey . "env" }}
+          env:
+{{ toYaml .env | trim | indent 12 }}
+{{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .containerPort }}
+              protocol: TCP
+          {{- if .livenessProbe}}
+          livenessProbe:
+            failureThreshold: {{ .livenessProbe.failureThreshold | default 3 }}
+            httpGet:
+              path: {{ .livenessProbe.path | default "/healthcheck" }}
+              port: {{ .containerPort }}
+            initialDelaySeconds: {{ .livenessProbe.initialDelaySeconds | default 15 }}
+            periodSeconds: {{ .livenessProbe.periodSeconds | default 10 }}
+            successThreshold: {{ .livenessProbe.successThreshold | default 1 }}
+            timeoutSeconds: {{ .livenessProbe.timeoutSeconds | default 1 }}
+            {{- else if $.Values.deployment.defaults.livenessProbe }}
+          livenessProbe:
+            failureThreshold: {{ $.Values.deployment.defaults.livenessProbe.failureThreshold | default 3 }}
+            httpGet:
+              path: {{ $.Values.deployment.defaults.livenessProbe.path | default "/actuator/health" }}
+              port: {{ .containerPort }}
+            initialDelaySeconds: {{ $.Values.deployment.defaults.livenessProbe.initialDelaySeconds | default 15 }}
+            periodSeconds: {{ $.Values.deployment.defaults.livenessProbe.periodSeconds | default 10 }}
+            successThreshold: {{ $.Values.deployment.defaults.livenessProbe.successThreshold | default 1 }}
+            timeoutSeconds: {{ $.Values.deployment.defaults.livenessProbe.timeoutSeconds | default 1 }}
+          {{- end }}
+          {{- if .readinessProbe}}
+          readinessProbe:
+            httpGet:
+              path: {{ .readinessProbe.path | default "/healthcheck" }}
+              port: {{ .containerPort }}
+            failureThreshold: {{ .readinessProbe.failureThreshold | default 3 }}
+            initialDelaySeconds: {{ .readinessProbe.initialDelaySeconds | default 15 }}
+            periodSeconds: {{ .readinessProbe.periodSeconds | default 10 }}
+            successThreshold: {{ .readinessProbe.successThreshold | default 1 }}
+            timeoutSeconds: {{ .readinessProbe.timeoutSeconds | default 1 }}
+            {{- else if $.Values.deployment.defaults.readinessProbe }}
+          readinessProbe:
+            httpGet:
+              path: {{ $.Values.deployment.defaults.readinessProbe.path | default "/actuator/health" }}
+              port: {{ .containerPort }}
+            failureThreshold: {{ $.Values.deployment.defaults.readinessProbe.failureThreshold | default 3 }}
+            initialDelaySeconds: {{ $.Values.deployment.defaults.readinessProbe.initialDelaySeconds | default 15 }}
+            periodSeconds: {{ $.Values.deployment.defaults.readinessProbe.periodSeconds | default 10 }}
+            successThreshold: {{ $.Values.deployment.defaults.readinessProbe.successThreshold | default 1 }}
+            timeoutSeconds: {{ $.Values.deployment.defaults.readinessProbe.timeoutSeconds | default 1 }}
+            {{- end }}
+          resources:
+{{- if hasKey . "resources" }}
+{{ toYaml .resources | trim | indent 12 }}
+{{- else }}
+{{ toYaml $.Values.deployment.defaults.resources | trim | indent 12 }}
+{{- end }}
+          volumeMounts:
+{{- range $mount := .volumeMounts }}
+            - name: {{ $mount.name }}
+              mountPath: {{ $mount.mountPath }}
+              {{- if hasKey . "subPath" }}
+              subPath: {{ $mount.subPath }}
+              {{- end }}
+              readOnly: {{ $mount.readOnly | default true}}
+              {{- end -}}
+{{ end }}
+    restartPolicy: {{ .Values.deployment.restartPolicy | default "Always"}}
+    imagePullSecrets:
+      - name: {{ .Values.deployment.imagePullSecret }}
+    {{- if not (eq .Values.deployment.serviceAccount "") }}
+    serviceAccountName: {{ $.Values.deployment.serviceAccount }}
+    {{- end }}
+    volumes:
+      {{- range $volume := .Values.deployment.volumes }}
+    - name: {{ $volume.name }}
+      {{- if eq $volume.type "configMap" }}
+      configMap:
+      {{- else if eq $volume.type "secret" }}
+      secret:
+      {{- end }}
+      name:  {{ $volume.source }}
+      {{- end -}}
+{{- end }}

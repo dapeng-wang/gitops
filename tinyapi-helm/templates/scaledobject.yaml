@@ -1,0 +1,38 @@
+{{- range .Values.deployment.containers }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ $.Values.application.name }}-scaledobject
+  labels:
+    app.kubernetes.io/name: {{ $.Values.application.name }}
+spec:
+  scaleTargetRef:
+    name: {{ $.Values.application.name }}
+    apiVersion: apps/v1
+    kind: Deployment
+  maxReplicaCount: {{ $.Values.scaledobject.maxReplicaCount }}
+  minReplicaCount: {{ $.Values.scaledobject.minReplicaCount }}
+  pollingInterval: {{ $.Values.scaledobject.pollingInterval }}
+  cooldownPeriod: {{ $.Values.scaledobject.cooldownPeriod }}
+  triggers:
+  {{- range $.Values.scaledobject.triggers }}
+    - type: {{ .type }}
+      metadata:
+        type: {{ .metadata.type }}
+        value: "{{ .metadata.value }}"
+  {{- end }}
+  advanced:
+    restoreToOriginalReplicaCount: true
+    horizontalPodAutoscalerConfig:
+      name: keda-hpa-{{ $.Values.application.name }}-scaledobject
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: {{ $.Values.scaledobject.advanced.scaleDown.stabilizationWindowSeconds }}
+          policies:
+            {{- range $.Values.scaledobject.advanced.scaleDown.policies }}
+            - type: {{ .type }}
+              value: {{ .value }}
+              periodSeconds: {{ .periodSeconds }}
+            {{- end }}
+---
+{{- end }}
