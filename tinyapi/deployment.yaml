@@ -7,7 +7,7 @@ metadata:
     app: tiny-api
   name: tiny-api
 spec:
-  replicas: 5
+  replicas: 1
   selector:
     matchLabels:
       app: tiny-api
