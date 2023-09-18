@@ -7,8 +7,7 @@ metadata:
     app: tiny-api
   name: tiny-api
 spec:
-  replicas: 1
-  revisionHistoryLimit: 2
+  replicas: 2
   selector:
     matchLabels:
       app: tiny-api
@@ -20,7 +19,6 @@ spec:
     type: RollingUpdate
   template:
     metadata:
-      creationTimestamp: null
       labels:
         app: tiny-api
         app.kubernetes.io/part-of: tiny-api
@@ -29,7 +27,7 @@ spec:
       containers:
       - env:
         - name: DATABASE_URL
-          value: TEST
+          value: TEST_ABCDE
         image: dapengwang/tiny-api:0.0.2
         imagePullPolicy: Always
         livenessProbe:
