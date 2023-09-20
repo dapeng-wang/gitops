@@ -1,7 +1,7 @@
 # Default values for staging.
 application:
-  name: 'tiny-api'
-  group: 'tiny-api'
+  name: 'tiny-api-helm'
+  group: 'tiny-api-helm'
   ingress:
     enabled: false
   deployment:
@@ -45,7 +45,7 @@ deployment:
       timeoutSeconds: 1
   # -- list of containers in the pod
   containers:
-    - name: 'tiny-api'
+    - name: 'tiny-api-helm'
       image: 'dapengwang/tiny-api:0.0.2'
       containerPort: 6666
       env:
