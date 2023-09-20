@@ -106,7 +106,7 @@ spec:
               {{- end -}}
 {{ end }}
     restartPolicy: {{ .Values.deployment.restartPolicy | default "Always"}}
-    {{- if not (eq .Values.deployment.serviceAccount "") }}
+    {{- if not (eq $.Values.deployment.serviceAccount "") }}
     serviceAccountName: {{ $.Values.deployment.serviceAccount }}
     {{- end }}
     volumes:
