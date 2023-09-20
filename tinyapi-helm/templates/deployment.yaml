@@ -106,8 +106,6 @@ spec:
               {{- end -}}
 {{ end }}
     restartPolicy: {{ .Values.deployment.restartPolicy | default "Always"}}
-    imagePullSecrets:
-      - name: {{ .Values.deployment.imagePullSecret }}
     {{- if not (eq .Values.deployment.serviceAccount "") }}
     serviceAccountName: {{ $.Values.deployment.serviceAccount }}
     {{- end }}
