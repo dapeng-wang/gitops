@@ -25,6 +25,6 @@ spec:
   service:
     name: {{ .name }}-service
     port: {{ .containerPort }}
-  host: {{ $.Values.application.name }}.c-6c75af4.kyma.shoot.live.k8s-hana.ondemand.com
+  host: {{ $.Values.application.name }}.b4a63c3.kyma.shoot.live.k8s-hana.ondemand.com
 ---
 {{- end }}

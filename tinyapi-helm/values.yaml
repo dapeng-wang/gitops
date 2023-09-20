@@ -1,27 +1,11 @@
 # Default values for staging.
 application:
-  # -- primary name of the application / deployment unit
-  name: '# TODO: must define a default value for name'
-  # -- group name for grouping resources of the same deployment unit
-  group: '# TODO: must define a default value for group'
-  # -- whether deployment resource should be rendered
+  name: 'tiny-api'
+  group: 'tiny-api'
+  ingress:
+    enabled: false
   deployment:
     enabled: true
-  # -- whether deployment resource should be rendered
-  ingress:
-    enabled: true
-  # -- whether cronjob resource should be rendered
-  cronjob:
-    enabled: false
-  # -- whether job resource should be rendered
-  job:
-    enabled: false
-
-# -- general ingress settings
-ingress:
-  standard:
-    host: domain.com
-
 # -- general deployment settings
 deployment:
   # -- replica count
@@ -61,3 +45,13 @@ deployment:
       timeoutSeconds: 1
   # -- list of containers in the pod
   containers:
+    - name: 'tiny-api'
+      image: 'dapengwang/tiny-api:0.0.2'
+      containerPort: 6666
+      env:
+        - name: DATABASE_URL
+          value: TEST
+      readinessProbe:
+        path: "/tiny/actuator/health"
+      livenessProbe:
+        path: "/tiny/actuator/health"
