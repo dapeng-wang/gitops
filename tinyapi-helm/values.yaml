@@ -9,7 +9,7 @@ application:
 # -- general deployment settings
 deployment:
   # -- replica count
-  replicaCount: 3
+  replicaCount: 2
   # -- restart policy
   restartPolicy: 'Always'
   # -- image pull secret
@@ -22,7 +22,7 @@ deployment:
       limits:
         memory: 1Gi
       requests:
-        cpu: 100m
+        cpu: 200m
         memory: 512Mi
     # -- default image pull policy
     imagePullPolicy: Always
