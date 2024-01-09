@@ -69,10 +69,10 @@ spec:
 {{- end -}}
 {{ end }}
       restartPolicy: {{ $deployment.restartPolicy | default $.Values.deploymentDefaults.restartPolicy}}
-      {{- if not (eq $deployment.imagePullSecret "") }}
-      imagePullSecrets:
-        - name: {{ $deployment.imagePullSecret | default $.Values.deploymentDefaults.imagePullSecret }}
-      {{- end }}
+#      {{- if not (eq $deployment.imagePullSecret "") }}
+#      imagePullSecrets:
+#        - name: {{ $deployment.imagePullSecret | default $.Values.deploymentDefaults.imagePullSecret }}
+#      {{- end }}
       {{- if not (eq $deployment.serviceAccount "") }}
       serviceAccountName: {{ $deployment.serviceAccount }}
       {{- end }}

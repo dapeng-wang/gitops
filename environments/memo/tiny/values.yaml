@@ -4,12 +4,10 @@ basic:
 
   deployment:
     replicaCount: 1
-    imagePullSecret: ""
-
 
     containers:
       - name: 'tiny-api'
-        image: 'dapengwang/tiny-api:0.0.2'
+        image: 'dapengwang/tiny-api:1.1.0'
         containerPort: 6666
         livenessProbe:
           httpGet:
