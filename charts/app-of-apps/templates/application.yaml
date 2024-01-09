@@ -1,0 +1,39 @@
+{{- range $app := .Values.applications }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  {{- if $.Values.prefixAppName }}
+  name: {{ $.Values.project }}-{{ $app.name }}
+  {{- else }}
+  name: {{ $app.name }}
+  {{- end }}
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: {{ $.Values.project | default "default" }}
+  destination:
+    namespace: {{ $app.namespace | default $.Values.namespace }}
+    server: 'https://kubernetes.default.svc'
+  source:
+    repoURL: {{ $.Values.repoUrl | squote }}
+    path: {{ $.Values.path }}/{{ $app.name }}
+    targetRevision: {{ $.Values.targetRevision }}
+    {{- if or $app.valueFiles $.defaultValueFiles }}
+    helm:
+      valueFiles:
+        {{- range $valuesFile := $app.valueFiles }}
+        - {{ $valuesFile }}
+        {{- end -}}
+        {{- range $valuesFile := $.defaultValueFiles }}
+        - {{ $valuesFile }}
+        {{- end -}}
+    {{- end }}
+  syncPolicy:
+    {{- toYaml $.Values.syncPolicy | nindent 4 }}
+  {{- if $app.ignoreDifferences }}
+  ignoreDifferences:
+    {{- toYaml $app.ignoreDifferences }}
+  {{- end }}
+{{- end -}}

@@ -1,0 +1,185 @@
+## Argo Configs
+configs:
+  # General Argo CD configuration
+  ## Ref: https://github.com/argoproj/argo-cd/blob/master/docs/operator-manual/argocd-cm.yaml
+  cm:
+    # Dex configuration
+#    dex.config: |
+#      connectors:
+#      - config:
+#          clientID: 349eaaa7-d8bb-4e03-9fd9-bbad447d3924
+#          clientSecret: H9dgwIbeJ.zmA7J:rTA[lXeGYEf]Wk
+#          groups: []
+#          insecureCA: true
+#          issuer: https://forme.accounts.ondemand.com
+#          redirectURI: https://argocd.b4a63c3.kyma.ondemand.com/api/dex/callback
+#        id: ias
+#        name: SAP IAS
+#        type: ias
+    # -- Argo CD's externally facing base URL (optional). Required when configuring SSO
+    admin.enabled: 'true'
+    users.anonymous.enabled: 'false'
+    url: 'https://argocd.me'
+
+  params:
+    ## Server properties
+    # -- Run server without TLS
+    server.insecure: true
+    # -- Value for base href in index.html. Used if Argo CD is running behind reverse proxy under subpath different from /
+    server.basehref: /
+    # -- Used if Argo CD is running behind reverse proxy under subpath different from /
+    server.rootpath: ''
+
+  # -- Provide one or multiple [external cluster credentials]
+  # @default -- `[]` (See [values.yaml])
+  ## Ref:
+  ## - https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/#clusters
+  ## - https://argo-cd.readthedocs.io/en/stable/operator-manual/security/#external-cluster-credentials
+  ## - https://argo-cd.readthedocs.io/en/stable/user-guide/projects/#project-scoped-repositories-and-clusters
+  clusterCredentials: []
+    # - name: mycluster
+    #   server: https://mycluster.com
+    #   labels: {}
+    #   annotations: {}
+    #   config:
+    #     bearerToken: "<authentication token>"
+    #     tlsClientConfig:
+    #       insecure: false
+    #       caData: "<base64 encoded certificate>"
+
+  # -- Repositories list to be used by applications
+  ## Creates a secret for each key/value specified below to create repositories
+  ## Note: the last example in the list would use a repository credential template, configured under "configs.repositoryCredentials".
+  repositories:
+    dapeng-gitops:
+      url: https://github.com/dapeng-wang/gitops.git
+      name: dapeng-gitops-repo
+      username: dapeng-wang
+      password: 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
+
+dex:
+  # -- Enable dex
+  enabled: true
+
+# -- Array of extra K8s manifests to deploy
+## Note: Supports use of custom Helm templates
+extraObjects:
+  - apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: argocd-server-http-ingress
+      namespace: argocd
+      annotations:
+        nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    spec:
+      ingressClassName: nginx
+      rules:
+        - http:
+            paths:
+              - path: /
+                pathType: Prefix
+                backend:
+                  service:
+                    name: argocd-server
+                    port:
+                      name: http
+          host: argocd.me
+      tls:
+        - hosts:
+            - argocd.me
+          secretName: argocd-ingress-http
+  - apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: argocd-server-grpc-ingress
+      namespace: argocd
+      annotations:
+        nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
+    spec:
+      ingressClassName: nginx
+      rules:
+        - http:
+            paths:
+              - path: /
+                pathType: Prefix
+                backend:
+                  service:
+                    name: argocd-server
+                    port:
+                      name: https
+          host: grpc.argocd.me
+      tls:
+        - hosts:
+            - grpc.argocd.me
+          secretName: argocd-ingress-grpc
+  - apiVersion: argoproj.io/v1alpha1
+    kind: AppProject
+    metadata:
+      name: cluster
+      namespace: argocd
+    spec:
+      description: CLUSTER
+      destinations:
+        - namespace: argocd
+          server: 'https://kubernetes.default.svc'
+        - namespace: harbor
+          server: 'https://kubernetes.default.svc'
+        - namespace: reloader
+          server: 'https://kubernetes.default.svc'
+      clusterResourceWhitelist:
+        - group: '*'
+          kind: '*'
+      orphanedResources:
+        warn: false
+      sourceRepos:
+        - '*'
+  - apiVersion: argoproj.io/v1alpha1
+    kind: AppProject
+    metadata:
+      name: memo
+      namespace: argocd
+    spec:
+      description: MEMO
+      destinations:
+        - namespace: memo
+          server: 'https://kubernetes.default.svc'
+        - namespace: argocd
+          server: 'https://kubernetes.default.svc'
+      orphanedResources:
+        warn: false
+      sourceRepos:
+        - '*'
+  - apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      name: memo-app-of-apps
+      namespace: argocd
+    spec:
+      destination:
+        namespace: argocd
+        server: 'https://kubernetes.default.svc'
+      project: memo
+      source:
+        path: environments/memo/app-of-apps/
+        repoURL: >-
+          https://github.com/dapeng-wang/gitops.git
+        targetRevision: main
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        retry:
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m
+          limit: 5
+        syncOptions:
+          - Validate=false
+          - PruneLast=true
+          - RespectIgnoreDifferences=true
+          - ApplyOutOfSyncOnly=true
+          - CreateNamespace=false
+          - Replace=false
+          - PrunePropagationPolicy=foreground

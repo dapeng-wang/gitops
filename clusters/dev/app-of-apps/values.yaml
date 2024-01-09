@@ -1,0 +1,14 @@
+app-of-apps:
+  project: forme-cluster
+  path: clusters/dev
+  applications:
+    - name: vault-reviewer-service-account
+      namespace: vault-secrets-operator-system
+    - name: vault-secret-operator
+      namespace: vault-secrets-operator-system
+    - name: dynatrace
+      namespace: dynatrace
+#    - name: cls-fluent-bit
+#      namespace: cls-fluent-bit
+#    - name: dynatrace
+#      namespace: dynatrace

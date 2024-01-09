@@ -1,0 +1,25 @@
+apiVersion: v1
+entries:
+  app-of-apps:
+  - apiVersion: v2
+    appVersion: 0.0.1
+    created: "2024-01-09T15:38:42.737916+01:00"
+    description: A Helm chart for ArgoCD app of apps
+    digest: 61d2dbb4b816a4e69458b5d3681aa1ed20aa4ce97b241fcf0b8584f1df7bae0f
+    name: app-of-apps
+    type: application
+    urls:
+    - app-of-apps-0.0.2.tgz
+    version: 0.0.2
+  basic:
+  - apiVersion: v2
+    appVersion: 0.0.1
+    created: "2024-01-09T15:38:42.738114+01:00"
+    description: A Helm chart for Kubernetes deployment.
+    digest: c10dd9940cb5e64fef2be642911de96a0b920d0f13ab1b0bb543df87eaac85d3
+    name: basic
+    type: application
+    urls:
+    - basic-0.0.1.tgz
+    version: 0.0.1
+generated: "2024-01-09T15:38:42.737682+01:00"

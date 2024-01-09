@@ -1,0 +1,11 @@
+app-of-apps:
+  project: forme-dev
+  namespace: forme-dev
+  path: environments/dev
+  prefixAppName: true
+  defaultValueFiles:
+    - ../.environment/values.yaml
+  applications:
+    - name: socks5-proxy
+    - name: vault-auth
+    - name: vault-credentials

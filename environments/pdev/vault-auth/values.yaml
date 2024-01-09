@@ -1,0 +1,19 @@
+basic:
+  application:
+    name: 'vault-auth'
+
+  vaultAuths:
+    - name: 'vault-auth'
+      vaultNamespace: forme/landscapes/pdev
+      allowedNamespaces:
+        - forme-pdev
+
+  serviceAccounts:
+    - name: 'vault'
+
+  secrets:
+    - name: 'vault-service-account-token'
+      annotations:
+        kubernetes.io/service-account.name: vault-service-account
+      type: kubernetes.io/service-account-token
+

@@ -1,0 +1,42 @@
+# Default values for staging.
+application:
+  # -- primary name of the application / deployment unit
+  name: '# TODO: must define a default value for name'
+
+# -- general deployment settings
+deploymentDefaults:
+  # -- istio sidecar enabled
+  istioEnabled: false
+  # -- replica count
+  replicaCount: 1
+  # -- restart policy
+  restartPolicy: 'Always'
+  # -- image pull secret
+  imagePullSecret: 'forme-docker-regcred'
+  # -- default resource setting
+  resources:
+    limits:
+      memory: 256Mi
+    requests:
+      cpu: 25m
+      memory: 128Mi
+  # -- default image pull policy
+  imagePullPolicy: Always
+  # -- default liveness probe settings
+  livenessProbe:
+    enabled: true
+    failureThreshold: 3
+    path: "/healthcheck"
+    initialDelaySeconds: 15
+    periodSeconds: 10
+    successThreshold: 1
+    timeoutSeconds: 1
+  # -- default readiness probe settings
+  readinessProbe:
+    enabled: true
+    failureThreshold: 3
+    path: "/healthcheck"
+    initialDelaySeconds: 15
+    periodSeconds: 10
+    successThreshold: 1
+    timeoutSeconds: 1

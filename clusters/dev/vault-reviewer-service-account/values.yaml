@@ -1,0 +1,19 @@
+basic:
+  application:
+    name: 'vault-reviewer-service-account'
+    namespace: 'vault-secrets-operator-system'
+
+  serviceAccounts:
+    - name: 'token-reviewer'
+
+  secrets:
+    - name: 'token-reviewer-service-account-token'
+      annotations:
+        kubernetes.io/service-account.name: token-reviewer-service-account
+      type: kubernetes.io/service-account-token
+
+  clusterRoleBindings:
+    - name: 'vault-reviewer'
+      role: 'system:auth-delegator'
+      serviceAccount: 'token-reviewer-service-account'
+      namespace: 'vault-secrets-operator-system'
