@@ -1,11 +1,9 @@
 app-of-apps:
-  project: forme-dev
-  namespace: forme-dev
-  path: environments/dev
-  prefixAppName: true
+  project: memo
+  namespace: memo
+  path: environments/memo
+  prefixAppName: false
   defaultValueFiles:
     - ../.environment/values.yaml
   applications:
-    - name: socks5-proxy
-    - name: vault-auth
-    - name: vault-credentials
+    - name: tinyapi
