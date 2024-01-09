@@ -10,17 +10,17 @@ basic:
         image: 'dapengwang/tiny-api:0.0.2'
         containerPort: 6666
         livenessProbe:
-          enabled: true
+          httpGet:                                                                                                                                                                                                                      │
+            path: "/tiny/actuator/health"
           failureThreshold: 3
-          path: "/tiny/actuator/health"
           initialDelaySeconds: 15
           periodSeconds: 10
           successThreshold: 1
           timeoutSeconds: 1
         readinessProbe:
-          enabled: true
+          httpGet:                                                                                                                                                                                                                      │
+            path: "/tiny/actuator/health"
           failureThreshold: 3
-          path: "/tiny/actuator/health"
           initialDelaySeconds: 15
           periodSeconds: 10
           successThreshold: 1
