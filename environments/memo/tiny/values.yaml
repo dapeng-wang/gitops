@@ -1,6 +1,6 @@
 basic:
   application:
-    name: 'tiny-api'
+    name: 'tinyapi'
 
   deployment:
     replicaCount: 1
