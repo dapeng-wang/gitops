@@ -12,7 +12,7 @@ deploymentDefaults:
   # -- restart policy
   restartPolicy: 'Always'
   # -- image pull secret
-  imagePullSecret: 'forme-docker-regcred'
+  imagePullSecret: ''
   # -- default resource setting
   resources:
     limits:

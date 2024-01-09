@@ -4,6 +4,8 @@ basic:
 
   deployment:
     replicaCount: 1
+    imagePullSecret: ""
+
 
     containers:
       - name: 'tiny-api'
