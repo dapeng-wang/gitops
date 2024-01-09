@@ -7,7 +7,6 @@ basic:
 
     containers:
       - name: 'tiny-api'
-      - name: 'tiny-api-helm'
         image: 'dapengwang/tiny-api:0.0.2'
         containerPort: 6666
         livenessProbe:
@@ -18,7 +17,6 @@ basic:
           periodSeconds: 10
           successThreshold: 1
           timeoutSeconds: 1
-        # -- default readiness probe settings
         readinessProbe:
           enabled: true
           failureThreshold: 3
