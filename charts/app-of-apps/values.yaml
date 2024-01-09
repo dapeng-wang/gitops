@@ -1,4 +1,4 @@
-repoUrl: https://github.tools.sap/forme/gitops.git
+repoUrl: https://github.com/dapeng-wang/gitops.git
 targetRevision: main
 syncPolicy:
   automated: # automated sync by default retries failed attempts 5 times with following delays between attempts ( 5s, 10s, 20s, 40s, 80s ); retry controlled using `retry` field.

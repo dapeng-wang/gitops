@@ -55,7 +55,7 @@ configs:
       url: https://github.com/dapeng-wang/gitops.git
       name: dapeng-gitops-repo
       username: dapeng-wang
-      password: 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
+      password: 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
 
 dex:
   # -- Enable dex
