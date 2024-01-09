@@ -1,0 +1,352 @@
+{{- range .Values.nodes }}
+{{- $component := default "backend" .component }}
+{{- $nodeName := required "nodes.*.name name is required" .name }}
+{{- $hasWebProfile := or (has "WEB" (.profiles | default list)) (has "ALL" (.profiles | default list)) }}
+{{- $isClustered := (list nil true "true" | has .clustered) }}
+---
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  {{- $containerName := $nodeName | replace "_" "-" | lower | trim }}
+  name: {{ $containerName }}
+  annotations:
+    reloader.stakater.com/auto: "true"
+  labels: {{- include "app.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $component }}
+    app.kubernetes.io/part-of: {{ $nodeName }}
+
+spec:
+  {{/*
+  Specifies the number of desired Pods. Defaults to 1. Can be overridden
+  via nodes.*.replicas property.
+  */}}
+  replicas: {{ .replicas | default (default 1 $.Values.replicaCount) }}
+
+  {{/*
+  Minimum number of seconds for which a newly created pod should be
+  ready without any of its container crashing, for it to be considered
+  available. Defaults to 0.
+  */}}
+  minReadySeconds: 10
+
+  {{/*
+  The deployment strategy to use to replace existing pods with new ones.
+  These settings are recommended by the Vert.x Community:
+  https://vertx.io/docs/vertx-hazelcast/java/#_rolling_updates
+    - maxUnavailable: specifies the maximum number of Pods that can be
+      unavailable during the update process. Defaults to 25%.
+    - maxSurge: specifies the maximum number of Pods that can be created
+      over the desired number of Pods. Defaults to 25%.
+  */}}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+
+  selector:
+    matchLabels: {{- include "app.selectorLabels" $ | nindent 6 }}
+      app.kubernetes.io/component: {{ $component }}
+      app.kubernetes.io/part-of: {{ $nodeName }}
+
+  template:
+    metadata:
+      annotations:
+        {{/*
+        Configures an AppArmor profile (a Linux security module) that restricts the
+        actions that a process can perform. The runtime/default AppArmor profile is
+        designed to be a balance between security and functionality, and it prevents
+        common methods of privilege escalation.
+        When a container runs with the runtime/default profile, the processes inside
+        the container are only allowed to perform a subset of the actions that would
+        be allowed if they were running on the host directly. These restrictions are
+        enforced by the kernel's AppArmor module, which checks each system call made
+        by the process against the rules defined in the profile. If a system call
+        would allow a process to perform an action that is not allowed by the profile,
+        the call is denied and the process is prevented from performing the action.
+        This profile will allow processes to perform normal operations like opening
+        files, creating network connections, and reading from the file system.
+        However, it will prevent processes from performing actions that would allow
+        them to gain additional privileges or access sensitive system resources, such
+        as reading or writing to certain directories, binding to privileged ports,
+        or calling certain system calls.
+        */}}
+        container.apparmor.security.beta.kubernetes.io/{{ $containerName }}: runtime/default
+
+      labels: {{- include "app.selectorLabels" $ | nindent 8 }}
+        app.kubernetes.io/component: {{ $component }}
+        app.kubernetes.io/part-of: {{ $nodeName }}
+        {{- if $hasWebProfile }}
+        exposed: "true"
+        {{- end }}
+        sidecar.istio.io/inject: {{ $.Values.istio.enabled | ternary "true" "false" | quote }}
+
+    spec:
+      serviceAccountName: {{ include "app.fullname" $ }}
+
+      containers:
+        - name: {{ $containerName }}
+          image: "{{ $.Values.image.registry | trim }}/{{ $.Values.image.repository | trim }}/{{ .name | trim }}:{{ .imageTag | default "latest" }}"
+
+          {{/*
+          Sets the minimum requirements and maximum limits for the resources that a pod
+          can consume. The pod will be able to consume at least the resources specified
+          in `requests` and at most the `resources` specified in limits. For simplicity,
+          these values are kept in sync.
+          */}}
+          resources:
+            requests:
+              {{- $memory := printf "%sG" (.memory | default 4 | toString) }}
+              memory: {{ $memory }}
+              {{- with .cpu }}
+              cpu: {{ . | default 2 }}
+              {{- end }}
+              ephemeral-storage: 1G
+            limits:
+              {{/* temporary change! change back to $memory, as soon as memory leak situation has been figured out! */}}
+              memory: {{ printf "%sG" ((add .memory 2) | default 6 | toString) }}
+              {{- with .cpu }}
+              cpu: {{ . | default 2 }}
+              {{- end }}
+              ephemeral-storage: 1G
+
+          {{/*
+          This security context restricts the privilege escalation uses the default seccomp
+          profile defined by runtime. The container allows read-write operations, while it
+          is not started in privileged mode. In addition, a process inside the container
+          cannot gain additional privileges, even if it is running as the root user.
+          */}}
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: false
+            seccompProfile:
+              type: RuntimeDefault
+            capabilities:
+              drop:
+              - ALL
+              add: ['NET_BIND_SERVICE']
+
+          {{/*
+          This liveness probe is used to determine whether a pod is alive and healthy. If
+          the path field is specified in the liveness values and the node is the web node,
+          (has a WEB profile), it is a HTTP GET request to that path on the http port.
+          Otherwise, it is a HTTP GET request to the /hazelcast/health path on the hazelcastPort
+          specified in the clusters values. In the latter case and if NeonBee is not clustered,
+          it defaults to a check of the TCP socket connection to the cluster Port specified in
+          the clusters values.
+          The initial delay before performing the first liveness probe is 60 seconds
+          (initialDelaySeconds), and the timeout for each probe is 5 seconds
+          (timeoutSeconds). The liveness probe is performed every 10 seconds (periodSeconds),
+          and if there are 10 consecutive failures (failureThreshold), the pod will be restarted.
+          */}}
+          {{- $health := $.Values.health }}
+          {{- if $hasWebProfile }}
+          livenessProbe:
+            {{/* Number of seconds after the container has started before probes are initiated. */}}
+            initialDelaySeconds: 60
+            {{/* Number of seconds after which the probe times out. */}}
+            timeoutSeconds: 5
+            {{/* How often (in seconds) to perform the probe. */}}
+            periodSeconds: 10
+            {{/* When a probe fails, k8s tries failureThreshold times before giving up. */}}
+            failureThreshold: 5
+            {{- if $health.liveness.path }}
+            httpGet:
+              path: {{ $health.liveness.path }}
+              port: http
+            {{- else }}
+              {{- if $isClustered }}
+            httpGet:
+              path: /hazelcast/health
+              port: {{ (index $.Values.clusters $component).hazelcastPort }}
+              {{- else }}
+            tcpSocket:
+              port: http
+              {{- end }}
+            {{- end }}
+          {{- else }}
+              {{- if $isClustered }}
+          livenessProbe:
+            initialDelaySeconds: 60
+            timeoutSeconds: 5
+            periodSeconds: 10
+            failureThreshold: 5
+            httpGet:
+              path: /hazelcast/health
+              port: {{ (index $.Values.clusters $component).hazelcastPort }}
+              {{- end }}
+          {{- end }}
+
+          {{/*
+          This readiness probe is used to determine whether a pod is ready to serve traffic.
+          It is either a HTTP GET request to the /hazelcast/health/node-state path on the
+          hazelcastPort specified in the clusters values, or a TCP socket connection to the
+          clusterPort specified in the clusters values, depending on NeonBee being clustered
+          or not. The initial delay before performing the first readiness probe is 60 seconds
+          (initialDelaySeconds), and the timeout for each probe is 5 seconds (timeoutSeconds).
+          The readiness probe is performed every 10 seconds (periodSeconds), and if there ard
+          10 consecutive failures (failureThreshold), the pod will be considered "NotReady".
+          */}}
+          readinessProbe:
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+            periodSeconds: 5
+            failureThreshold: 10
+            {{- if $isClustered }}
+            httpGet:
+              path: /hazelcast/health/node-state
+              port: {{ (index $.Values.clusters $component).hazelcastPort }}
+            {{- else }}
+              {{- if $hasWebProfile }}
+            tcpSocket:
+              port: http
+              {{- end }}
+            {{- end }}
+
+          {{/*
+          This startup probe is used to determine whether a pod is ready to start serving
+          traffic after it has been restarted.
+          */}}
+          startupProbe:
+            initialDelaySeconds: 20
+            timeoutSeconds: 5
+            periodSeconds: 10
+            failureThreshold: 30
+            {{- if $isClustered }}
+            httpGet:
+              path: /hazelcast/health/node-state
+              port: {{ (index $.Values.clusters $component).hazelcastPort }}
+            {{- else }}
+              {{- if $hasWebProfile }}
+            tcpSocket:
+              port: http
+              {{- end }}
+            {{- end }}
+
+          ports:
+            {{- if $hasWebProfile }}
+            - containerPort: {{ $.Values.expose.port }}
+              hostPort: {{ $.Values.expose.port }}
+              name: http
+            {{- end }}
+            {{- if $isClustered }}
+            - containerPort: {{ (index $.Values.clusters $component).hazelcastPort }}
+            - containerPort: {{ (index $.Values.clusters $component).clusterPort }}
+            {{- end }}
+
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+
+          env:
+            - name: DEFAULT_JAVA_TOOL_OPTIONS
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ printf "%s-%s-env" (include "app.fullname" $) (.name | replace "_" "-" | lower) }}
+                  key: DEFAULT_JAVA_TOOL_OPTIONS
+            - name: DYNAMIC_JAVA_TOOL_OPTIONS
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ template "app.fullname" $ }}-jvm-args
+                  key: {{ .name | trim }}
+                  optional: true
+            {{/*
+            DEFAULT_JAVA_TOOL_OPTIONS and DYNAMIC_JAVA_TOOL_OPTIONS are two keys, the JVM actually
+            does not care about. the only value relevant is the JAVA_TOOL_OPTIONS we now set (see [1])
+            [1] https://docs.oracle.com/javase/8/docs/technotes/guides/troubleshoot/envvars002.html
+            */}}
+            - name: JAVA_TOOL_OPTIONS
+              value: "$(DEFAULT_JAVA_TOOL_OPTIONS) $(DYNAMIC_JAVA_TOOL_OPTIONS)"
+
+          envFrom:
+            {{/*
+            General landscape-specific environment variables
+            */}}
+            - configMapRef:
+                name: {{ printf "%s-%s-env" (include "app.fullname" $) (.name | replace "_" "-" | lower) }}
+            {{/*
+            BTP Service Credentials exposed as environment variables with a prefix
+            The prefix is read by the ServiceConfigSuppliers in the vertx-btp-kyma package.
+            These credentials are required for the client implementations of the BTP services
+            to be able to create a connection to the service.
+            */}}
+            {{- range .services }}
+            - prefix: {{ printf "%s_" (. | trimPrefix (include "app.name" $) | trimPrefix "-" | upper | replace "-" "_") }}
+              secretRef:
+                name: {{ . }}
+            {{- end }}
+            {{- range .hdi }}
+            - prefix: {{ printf "%s_" (. | trimPrefix (include "app.name" $) | trimPrefix "-" | upper | replace "-" "_") }}
+              secretRef:
+                name: {{ . }}
+            {{- end }}
+
+          volumeMounts:
+            - name: conf
+              mountPath: /config
+              readOnly: false
+
+            - name: hazelcast
+              mountPath: /hazelcast
+              readOnly: false
+
+            {{- with (lookup "v1" "Secret" $.Release.Namespace $.Values.global.userProvidedSecret) }}
+            - name: custom-credentials
+              mountPath: /custom-credentials
+              readOnly: true
+            {{- end }}
+
+      volumes:
+        - name: conf
+          configMap:
+            name: {{ include "app.fullname" $ }}-{{ $component }}-settings
+
+        - name: hazelcast
+          configMap:
+            name: {{ include "app.fullname" $ }}-hazelcast
+
+        {{- with (lookup "v1" "Secret" $.Release.Namespace $.Values.global.userProvidedSecret) }}
+        - name: custom-credentials
+          secret:
+            secretName: {{ $.Values.global.userProvidedSecret }}
+        {{- end }}
+
+      restartPolicy: Always
+
+      {{/*
+      Specifies the number of seconds to wait before forcibly terminating a pod.
+      This is useful to allow the pod to finish any tasks and perform a graceful shutdown.
+      */}}
+      terminationGracePeriodSeconds: {{ $.Values.terminationGracePeriodSeconds }}
+
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534 # nobody
+        runAsGroup: 65534 # nogroup
+
+      {{/*
+      The topologySpreadConstraints is used to control the spread of pods across
+      topological domains. This can be useful in situations where you want to ensure
+      that pods are spread across different zones, regions, or hosts to ensure high
+      availability and to balance the load.
+      With the default topologySpreadConstraints (values.yaml), the pods of a 
+      deployment are to be spread across different topological domains (zones
+      and hostname) with a maximum skew of 1. The maximum skew specifies the maximum
+      number of pods that can be scheduled in a topological domain more than any other.
+      Also, even if the constraint is not met the pod will be scheduled with
+      whenUnsatisfiable set to ScheduleAnyway.
+      */}}
+      topologySpreadConstraints:
+      {{- range $constraint := $.Values.availability.topologySpreadConstraints }}
+      - labelSelector:
+          matchLabels: {{- include "app.selectorLabels" $ | nindent 12 }}
+            app.kubernetes.io/component: {{ $component }}
+            app.kubernetes.io/part-of: {{ $nodeName }}
+        maxSkew: {{ $constraint.maxSkew }}
+        topologyKey: {{ $constraint.topologyKey }}
+        whenUnsatisfiable: {{ $constraint.whenUnsatisfiable }}
+      {{- end }}
+
+      imagePullSecrets:
+        - name: {{ $.Values.global.imagePullSecret }}
+{{- end }}

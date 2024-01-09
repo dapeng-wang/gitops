@@ -1,0 +1,83 @@
+## Argo Configs
+configs:
+  # General Argo CD configuration
+  ## Ref: https://github.com/argoproj/argo-cd/blob/master/docs/operator-manual/argocd-cm.yaml
+  cm:
+    # Dex configuration
+#    dex.config: |
+#      connectors:
+#      - config:
+#          clientID: 349eaaa7-d8bb-4e03-9fd9-bbad447d3924
+#          clientSecret: H9dgwIbeJ.zmA7J:rTA[lXeGYEf]Wk
+#          groups: []
+#          insecureCA: true
+#          issuer: https://forme.accounts.ondemand.com
+#          redirectURI: https://argocd.b4a63c3.kyma.ondemand.com/api/dex/callback
+#        id: ias
+#        name: SAP IAS
+#        type: ias
+    # -- Argo CD's externally facing base URL (optional). Required when configuring SSO
+    admin.enabled: 'true'
+    users.anonymous.enabled: 'false'
+
+    # OIDC configuration as an alternative to dex (optional).
+    oidc.config: |
+      name: SAP IAS
+      issuer: https://forme.accounts.ondemand.com
+      clientID: 349eaaa7-d8bb-4e03-9fd9-bbad447d3924
+      clientSecret: H9dgwIbeJ.zmA7J:rTA[lXeGYEf]Wk
+      requestedIDTokenClaims:
+        groups:
+          essential: true
+
+  # Argo CD RBAC policy configuration
+  ## Ref: https://github.com/argoproj/argo-cd/blob/master/docs/operator-manual/rbac.md
+  rbac:
+    policy.csv: |
+      g, kyma-admin, role:admin
+
+  params:
+    ## Server properties
+    # -- Run server without TLS
+    server.insecure: true
+    # -- Value for base href in index.html. Used if Argo CD is running behind reverse proxy under subpath different from /
+    server.basehref: /
+    # -- Used if Argo CD is running behind reverse proxy under subpath different from /
+    server.rootpath: ''
+
+  # -- Provide one or multiple [external cluster credentials]
+  # @default -- `[]` (See [values.yaml])
+  ## Ref:
+  ## - https://argo-cd.readthedocs.io/en/stable/operator-manual/declarative-setup/#clusters
+  ## - https://argo-cd.readthedocs.io/en/stable/operator-manual/security/#external-cluster-credentials
+  ## - https://argo-cd.readthedocs.io/en/stable/user-guide/projects/#project-scoped-repositories-and-clusters
+  clusterCredentials: []
+    # - name: mycluster
+    #   server: https://mycluster.com
+    #   labels: {}
+    #   annotations: {}
+    #   config:
+    #     bearerToken: "<authentication token>"
+    #     tlsClientConfig:
+    #       insecure: false
+    #       caData: "<base64 encoded certificate>"
+
+  # -- Repositories list to be used by applications
+  ## Creates a secret for each key/value specified below to create repositories
+  ## Note: the last example in the list would use a repository credential template, configured under "configs.repositoryCredentials".
+  repositories:
+#    dapeng-gitops:
+#      url: https://github.com/dapeng-wang/gitops.git
+#      name: dapeng-gitops-repo
+#      username: dapeng-wang
+#      password: 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
+    forme-gitops:
+      url: https://github.tools.sap/forme/gitops.git
+      name: forme-gitops
+      username: c5295718
+      password: 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
+
+dex:
+  # -- Enable dex
+  enabled: true
+

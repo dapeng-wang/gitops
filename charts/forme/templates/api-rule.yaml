@@ -1,0 +1,27 @@
+{{ if .Values.expose.enabled }}
+---
+apiVersion: gateway.kyma-project.io/v1beta1
+kind: APIRule
+metadata:
+  name: web-api-rule
+  labels: {{- include "app.labels" . | nindent 4 }}
+spec:
+  gateway: kyma-gateway.kyma-system.svc.cluster.local
+  rules:
+    - accessStrategies:
+        - config: {}
+          handler: allow
+      methods:
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+        - HEAD
+      path: /.*
+  host: {{ template "app.exposeHost" . }}
+  service:
+    name: web
+    port: {{ .Values.expose.port | default 8080 }}
+  timeout: 120
+{{ end }}

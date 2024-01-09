@@ -1,0 +1,58 @@
+# Default values for staging.
+application:
+  name: 'tiny-api-helm'
+  group: 'tiny-api-helm'
+  ingress:
+    enabled: false
+  deployment:
+    enabled: true
+# -- general deployment settings
+deployment:
+  # -- replica count
+  replicaCount: 2
+  # -- restart policy
+  restartPolicy: 'Always'
+  # -- image pull secret
+  imagePullSecret: ''
+  serviceAccount: ''
+  # -- default settings for containers
+  defaults:
+    # -- default resource setting
+    resources:
+      limits:
+        memory: 1Gi
+      requests:
+        cpu: 200m
+        memory: 512Mi
+    # -- default image pull policy
+    imagePullPolicy: Always
+    # -- default liveness probe settings
+    livenessProbe:
+      enabled: true
+      failureThreshold: 3
+      path: "/healthcheck"
+      initialDelaySeconds: 15
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 1
+    # -- default readiness probe settings
+    readinessProbe:
+      enabled: true
+      failureThreshold: 3
+      path: "/healthcheck"
+      initialDelaySeconds: 15
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 1
+  # -- list of containers in the pod
+  containers:
+    - name: 'tiny-api-helm'
+      image: 'dapengwang/tiny-api:0.0.2'
+      containerPort: 6666
+      env:
+        - name: DATABASE_URL
+          value: TEST
+      readinessProbe:
+        path: "/tiny/actuator/health"
+      livenessProbe:
+        path: "/tiny/actuator/health"

@@ -1,0 +1,3 @@
+whitelistedPaths:
+  - "/raw/core/User" # required to be able to STOP simulation, which is a PUT request
+  - "/raw/finance/PayInvoice"

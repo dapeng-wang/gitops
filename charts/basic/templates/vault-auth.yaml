@@ -1,0 +1,25 @@
+{{- if .Values.vaultAuths }}
+{{- range $auth := .Values.vaultAuths }}
+---
+apiVersion: secrets.hashicorp.com/v1beta1
+kind: VaultAuth
+metadata:
+  name: {{ $auth.name }}
+  {{ include "metadata.namespace" $ }}
+  {{ include "metadata.labels" $ }}
+spec:
+  vaultConnectionRef: {{ $auth.connection | default "vault-secrets-operator-system/default" }}
+  namespace: {{ $auth.vaultNamespace }}
+  allowedNamespaces:
+    {{- range $namespace := $auth.allowedNamespaces }}
+    - {{ $namespace }}
+    {{- end }}
+  method: kubernetes
+  mount: {{ $auth.mount | default "kyma" }}
+  headers:
+    X-Vault-Namespace: {{ $auth.vaultNamespace }}
+  kubernetes:
+    role: {{ $auth.role | default "kyma-vault-secret-operator-role" }}
+    serviceAccount: {{ $auth.serviceAccount | default "vault-service-account" }}
+{{- end }}
+{{- end }}

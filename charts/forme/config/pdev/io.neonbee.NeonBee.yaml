@@ -1,0 +1,28 @@
+---
+# the number of seconds before a event bus message times-out, defaults to 30
+eventBusTimeout: 110
+
+# the maximum string length (in chars or bytes, depending on input context) to parse JSON input strings or buffers
+jsonMaxStringSize: 20_000_000
+
+platformClasses:
+  - "io.vertx.*"
+  - "io.neonbee.*"
+  - "org.slf4j.*"
+  - "org.apache.olingo.*"
+  - "com.sap.me.shared.*"
+  - "com.sap.vertx.btp.*"
+  - "com.sap.db.*"
+  - "io.agroal.*"
+
+micrometerRegistries:
+  - className: com.sap.me.shared.config.DynatraceRegistryLoader
+    config:
+      interval: 1m  # defaults to 1 minute (push interval)
+
+health:
+  enabled: true
+  timeout: 5
+
+metrics:
+  enabled: true

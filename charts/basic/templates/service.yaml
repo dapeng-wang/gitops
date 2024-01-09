@@ -1,0 +1,21 @@
+{{- if .Values.deployment -}}
+{{- range .Values.deployment.containers }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .name }}-service
+  {{ include "metadata.namespace" $}}  
+  {{ include "metadata.labels" $}}
+spec:
+  ports:
+  - name: {{ .name }}-port
+    port: {{ .containerPort }}
+    protocol: TCP
+    targetPort: {{ .containerPort }}
+  selector:
+    app: {{ $.Values.application.name }}
+  sessionAffinity: None
+  type: ClusterIP
+{{- end }}
+{{- end }}

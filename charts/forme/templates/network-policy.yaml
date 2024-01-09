@@ -1,0 +1,28 @@
+{{/*
+This network policy is used to control ingress network traffic to
+pods with the forme chart labels. The policy only allows traffic
+to pods if it coming from the istio-ingressgateway of the istio-system
+namespace. It blocks all other ingress traffic.
+*/}}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ingress-network-policy
+  labels: {{- include "app.labels" . | nindent 4 }}
+spec:
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: istio-ingressgateway
+      namespaceSelector:
+        matchLabels:
+          name: istio-system
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: {{ .Release.Namespace }}
+  podSelector:
+    matchLabels: {{- include "app.selectorLabels" . | nindent 6 }}
+  policyTypes:
+  - Ingress

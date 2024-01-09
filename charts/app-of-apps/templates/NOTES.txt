@@ -1,0 +1,1 @@
+App-Of-Apps for project {{ .project }} deployed.

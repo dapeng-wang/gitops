@@ -1,0 +1,118 @@
+{{- /*
+Backend configuration
+*/}}
+{{- range .Values.nodes }}
+---
+{{- $component := default "backend" .component }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "app.fullname" $ }}-{{ .name | replace "_" "-" | lower }}-env
+  labels: {{ include "app.labels" $ | nindent 4 }}
+data:
+  LANDSCAPE: {{ required "landscape value is required" $.Values.landscape | quote }}
+  NODE_TYPE: {{ required "node name is required" .name | quote }}
+  NEONBEE_WORKING_DIR: {{ .workingDir | default "./working_dir" | quote }}
+  NEONBEE_SERVER_PORT: {{ $.Values.expose.port | quote | default "8080" }}
+  {{- $isClustered := list nil true "true" | has .clustered }}
+  NEONBEE_CLUSTERED: {{ $isClustered | quote }}
+  {{- if $isClustered }}
+  NEONBEE_CLUSTER_PORT: {{ (index $.Values.clusters $component).clusterPort | quote }}
+  NEONBEE_CLUSTER_CONFIG: "/hazelcast/hazelcast-{{ $component }}.xml"
+  {{- end }}
+  NEONBEE_ACTIVE_PROFILES: {{ (join "," .profiles | upper ) | default "ALL" | quote }}
+  {{- if (list nil true "true" | has $.Values.redeployMissingEntities) }}
+  NEONBEE_SHOULD_REDEPLOY_ENTITIES: {{ $.Values.redeployMissingEntities | quote }}
+  {{- end }}
+  JBP_CONFIG_COMPONENTS: '{jres: ["JavaBuildpack::Jre::SapMachineJRE"]}'
+  JBP_CONFIG_SAP_MACHINE_JRE: '{ jre: { version: "11.+" } }'
+  DEFAULT_JAVA_TOOL_OPTIONS: "-Djdbc.drivers=com.sap.db.jdbc.Driver -Dhazelcast.shutdownhook.policy=GRACEFUL"
+  {{- if $.Values.xsuaa }}
+    {{- with $.Values.xsuaa.verificationkey }}
+  XSUAA_verificationkey: {{ . | trim | quote }}
+    {{- end }}
+    {{- with $.Values.xsuaa.xsappname }}
+  XSUAA_xsappname: {{ . | trim | quote }}
+    {{- end }}
+  {{- end }}
+  {{- with $.Values.loggingEndpoint }}
+  CLOUD_LOGGING_Kibana-endpoint: {{ . | trim | quote }}
+  CLOUD_LOGGING_dashboards-endpoint: {{ . | trim | quote }}
+  {{- end }}
+  {{- with $.Values.connectivity.host }}
+  CONNECTIVITY_onpremise_proxy_host: {{ . | trim | quote }}
+  {{- end }}
+  {{- with $.Values.connectivity.port }}
+  CONNECTIVITY_onpremise_proxy_port: {{ . | quote }}
+  {{- end }}
+  {{- if eq "refresher" $component }}
+  FORME_REFRESHER_NODE_DISTRIBUTION_INTERVALS: {{ $.Values.clusters.refresher.interval | default "0$[0123456789]" }}
+  {{- end }}
+{{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "app.fullname" $ }}-jvm-args
+  labels: {{- include "app.labels" $ | nindent 4 }}
+{{/*
+The values in the .jvmArgs and .jvmMemoryArgs
+will dynamically be set by the Gralde build
+script. A full explanation how the jvm-args
+will be composed can be found in the calculateJVMMemoryArgs
+task of the nodeSpecificTasks.gradle
+*/}}
+data:
+  {{- range .Values.nodes }}
+    {{- $jvmMemoryArgs := "" }}
+    {{- if .jvmMemoryArgs }}
+      {{- $jvmMemoryArgs = .jvmMemoryArgs }}
+    {{- else }}
+      {{/* Note: This comment will be generated into the Helm chart! */}}
+    # ATTENTION: no JVM memory arguments have been supplied for this node, the now applied defaults may perform subpar on runtime
+      {{- $jvmMemoryArgs = printf "-XX:MaxRAMPercentage=62.5 -XX:ReservedCodeCacheSize=%sM -XX:MaxMetaspaceSize=%sM -XX:MaxDirectMemorySize=%sM" (int (ceil (mulf (.memory | default 4) 61.5)) | toString) (int (ceil (mulf (.memory | default 4) 30.5)) | toString) ((.directMemory | default (int (ceil (mulf (mul .memory 1024) 0.25)))) | toString) }}
+    {{- end }}
+    {{ .name | trim }}: {{ $jvmMemoryArgs | default "" }} {{ .jvmArgs | default "" }}
+  {{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "app.fullname" $ }}-hazelcast
+  labels: {{- include "app.labels" $ | nindent 4 }}
+data:
+  {{- $scope := .}}
+  {{- $files := .Files }}
+  {{- range $key, $_ := .Files.Glob  "config/hazelcast*.xml" }}
+  {{ $key | trimPrefix "config/" }}: {{ tpl ($files.Get $key ) $scope | quote }}
+  {{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "app.fullname" $ }}-backend-settings
+  labels: {{- include "app.labels" $ | nindent 4 }}
+data:
+  {{- $scope := .}}
+  {{- $files := .Files }}
+  {{- range $key, $_ := .Files.Glob (printf "config/%s/**" $scope.Values.landscape) }}
+    {{- with $scope}}
+  {{ $key | trimPrefix (printf "config/%s/" $scope.Values.landscape) | replace ".tmpl" "" }}: {{ tpl ($files.Get $key ) $scope | quote }}
+    {{- end }}
+  {{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "app.fullname" $ }}-refresher-settings
+  labels: {{- include "app.labels" $ | nindent 4 }}
+data:
+  {{- $scope := .}}
+  {{- $files := .Files }}
+  {{- range $key, $_ := .Files.Glob (printf "config/%s/**" $scope.Values.landscape) }}
+    {{- if regexMatch ".*(refresher|neonbee|logback|BootstrapVerticle).*" $key }}
+      {{- with $scope}}
+  {{ $key | trimPrefix (printf "config/%s/" $scope.Values.landscape) | replace ".tmpl" "" }}: {{ tpl ($files.Get $key ) $scope | quote }}
+      {{- end }}
+    {{- end }}
+  {{- end }}

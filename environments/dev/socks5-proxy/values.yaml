@@ -1,0 +1,22 @@
+basic:
+  application:
+    name: 'socks5-proxy'
+
+  deployment:
+    replicaCount: 1
+    imagePullSecret: forme-docker-regcred
+
+    containers:
+      - name: 'socks5-proxy'
+        image: 'forme.common.repositories.cloud.sap/forme/forme-socks5-proxy:0.0.2'
+        containerPort: 1080
+        readinessProbe:
+          tcpSocket:
+            port: 1080
+          initialDelaySeconds: 50
+          periodSeconds: 10
+        livenessProbe:
+          tcpSocket:
+            port: 1080
+          initialDelaySeconds: 15
+          periodSeconds: 20

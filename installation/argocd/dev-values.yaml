@@ -1,0 +1,199 @@
+configs:
+  cm:
+    url: 'https://argocd.b4a63c3.kyma.ondemand.com'
+# -- Array of extra K8s manifests to deploy
+## Note: Supports use of custom Helm templates
+extraObjects:
+  - apiVersion: gateway.kyma-project.io/v1beta1
+    kind: APIRule
+    metadata:
+      labels:
+        app.kubernetes.io/name: argocd
+      name: argocd
+      namespace: argocd
+    spec:
+      gateway: kyma-gateway.kyma-system.svc.cluster.local
+      host: argocd.b4a63c3.kyma.ondemand.com
+      rules:
+        - accessStrategies:
+            - handler: allow
+          methods:
+            - GET
+            - POST
+            - PUT
+            - DELETE
+            - PATCH
+            - HEAD
+          path: /.*
+          service:
+            name: argocd-server
+            port: 80
+      service:
+        name: argocd-server
+        port: 80
+  - apiVersion: argoproj.io/v1alpha1
+    kind: AppProject
+    metadata:
+      name: forme-cluster
+      namespace: argocd
+    spec:
+      description: FORME CLUSTER
+      destinations:
+        - namespace: argocd
+          server: 'https://kubernetes.default.svc'
+        - namespace: dynatrace
+          server: 'https://kubernetes.default.svc'
+        - namespace: harbor
+          server: 'https://kubernetes.default.svc'
+        - namespace: reloader
+          server: 'https://kubernetes.default.svc'
+        - namespace: vault-secrets-operator-system
+          server: 'https://kubernetes.default.svc'
+        - namespace: cls-fluent-bit
+          server: 'https://kubernetes.default.svc'
+      clusterResourceWhitelist:
+        - group: '*'
+          kind: '*'
+      orphanedResources:
+        warn: false
+      sourceRepos:
+        - '*'
+  - apiVersion: argoproj.io/v1alpha1
+    kind: AppProject
+    metadata:
+      name: forme-dev
+      namespace: argocd
+    spec:
+      description: FORME DEV
+      destinations:
+        ## required because of secret provisioning
+        - namespace: dynatrace
+          server: 'https://kubernetes.default.svc'
+        - namespace: forme-dev
+          server: 'https://kubernetes.default.svc'
+        - namespace: argocd
+          server: 'https://kubernetes.default.svc'
+      orphanedResources:
+        warn: false
+      sourceRepos:
+        - '*'
+  - apiVersion: argoproj.io/v1alpha1
+    kind: AppProject
+    metadata:
+      name: forme-pdev
+      namespace: argocd
+    spec:
+      description: FORME PDEV
+      destinations:
+        - namespace: forme-pdev
+          server: 'https://kubernetes.default.svc'
+        - namespace: vault-secrets-operator-system
+          server: 'https://kubernetes.default.svc'
+        - namespace: argocd
+          server: 'https://kubernetes.default.svc'
+      clusterResourceWhitelist:
+        - group: '*'
+          kind: '*'
+      orphanedResources:
+        warn: false
+      sourceRepos:
+        - '*'
+  - apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      name: forme-dev-app-of-apps
+      namespace: argocd
+    spec:
+      destination:
+        namespace: argocd
+        server: 'https://kubernetes.default.svc'
+      project: forme-dev
+      source:
+        path: environments/dev/app-of-apps/
+        repoURL: >-
+          https://github.tools.sap/forme/gitops.git
+        targetRevision: main
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        retry:
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m
+          limit: 5
+        syncOptions:
+          - Validate=false
+          - PruneLast=true
+          - RespectIgnoreDifferences=true
+          - ApplyOutOfSyncOnly=true
+          - CreateNamespace=false
+          - Replace=false
+          - PrunePropagationPolicy=foreground
+  - apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      name: forme-pdev-app-of-apps
+      namespace: argocd
+    spec:
+      destination:
+        namespace: argocd
+        server: 'https://kubernetes.default.svc'
+      project: forme-pdev
+      source:
+        path: environments/pdev/app-of-apps/
+        repoURL: >-
+          https://github.tools.sap/forme/gitops.git
+        targetRevision: main
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        retry:
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m
+          limit: 5
+        syncOptions:
+          - Validate=false
+          - PruneLast=true
+          - RespectIgnoreDifferences=true
+          - ApplyOutOfSyncOnly=true
+          - CreateNamespace=false
+          - Replace=false
+          - PrunePropagationPolicy=foreground
+  - apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      name: forme-cluster-app-of-apps
+      namespace: argocd
+    spec:
+      destination:
+        namespace: argocd
+        server: 'https://kubernetes.default.svc'
+      project: forme-cluster
+      source:
+        path: clusters/dev/app-of-apps/
+        repoURL: >-
+          https://github.tools.sap/forme/gitops.git
+        targetRevision: main
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        retry:
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m
+          limit: 5
+        syncOptions:
+          - Validate=false
+          - PruneLast=true
+          - RespectIgnoreDifferences=true
+          - ApplyOutOfSyncOnly=true
+          - CreateNamespace=false
+          - Replace=false
+          - PrunePropagationPolicy=foreground

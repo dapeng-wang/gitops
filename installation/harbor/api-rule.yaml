@@ -1,0 +1,27 @@
+apiVersion: gateway.kyma-project.io/v1beta1
+kind: APIRule
+metadata:
+  labels:
+    app.kubernetes.io/name: harbor
+  name: harbor
+  namespace: harbor
+spec:
+  gateway: kyma-gateway.kyma-system.svc.cluster.local
+  host: harbor.b4a63c3.kyma.ondemand.com
+  rules:
+    - accessStrategies:
+        - handler: allow
+      methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - PATCH
+        - HEAD
+      path: /.*
+      service:
+        name: harbor
+        port: 80
+  service:
+    name: harbor
+    port: 80

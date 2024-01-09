@@ -1,0 +1,89 @@
+{{- if .Values.deployment -}}
+{{- $deployment := .Values.deployment }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $.Values.application.name }}
+  {{ include "metadata.namespace" $ }}
+  {{ include "metadata.labels" $ }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ $.Values.application.name }}
+      sidecar.istio.io/inject: {{ $deployment.istioEnabled | default $.Values.deploymentDefaults.istioEnabled | quote }}
+  replicas: {{ $deployment.replicaCount | default $.Values.deploymentDefaults.replicaCount}}
+  revisionHistoryLimit: 2
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: {{ $.Values.application.name }}
+        sidecar.istio.io/inject: {{ $deployment.istioEnabled | default $.Values.deploymentDefaults.istioEnabled | quote }}
+    spec:
+      terminationGracePeriodSeconds: 30
+      containers:
+{{- range $deployment.containers }}
+        - name: {{ .name }}
+          image: "{{ .image }}"
+          imagePullPolicy: "Always"
+{{- if hasKey . "env" }}
+          env:
+{{ toYaml .env | trim | indent 12 }}
+{{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .containerPort }}
+              protocol: TCP
+          {{- if .livenessProbe}}
+          livenessProbe:
+{{ toYaml .livenessProbe | trim | indent 12 }}
+          {{- else }}
+{{ toYaml $.Values.deploymentDefaults.livenessProbe | trim | indent 12 }}
+          {{- end }}
+          {{- if .readinessProbe}}
+          readinessProbe:
+{{ toYaml .readinessProbe | trim | indent 12 }}
+          {{- else }}
+{{ toYaml $.Values.deploymentDefaults.readinessProbe | trim | indent 12 }}
+          {{- end }}
+          resources:
+{{- if hasKey . "resources" }}
+{{ toYaml .resources | trim | indent 12 }}
+{{- else }}
+{{ toYaml $.Values.deploymentDefaults.resources | trim | indent 12 }}
+{{- end }}
+{{- if .volumeMounts }}
+          volumeMounts:
+{{- range $mount := .volumeMounts }}
+            - name: {{ $mount.name }}
+              mountPath: {{ $mount.mountPath }}
+            {{- if hasKey . "subPath" }}
+              subPath: {{ $mount.subPath }}
+            {{- end }}
+              readOnly: {{ $mount.readOnly | default true}}
+{{- end -}}
+{{- end -}}
+{{ end }}
+      restartPolicy: {{ $deployment.restartPolicy | default $.Values.deploymentDefaults.restartPolicy}}
+      {{- if not (eq $deployment.imagePullSecret "") }}
+      imagePullSecrets:
+        - name: {{ $deployment.imagePullSecret | default $.Values.deploymentDefaults.imagePullSecret }}
+      {{- end }}
+      {{- if not (eq $deployment.serviceAccount "") }}
+      serviceAccountName: {{ $deployment.serviceAccount }}
+      {{- end }}
+      volumes:
+{{- range $volume := $deployment.volumes }}
+        - name: {{ $volume.name }}
+        {{- if eq $volume.type "configMap" }}
+          configMap:
+        {{- else if eq $volume.type "secret" }}
+          secret:
+        {{- end }}
+            name:  {{ $volume.source }}
+{{- end -}}
+{{- end -}}

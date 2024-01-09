@@ -1,0 +1,7 @@
+---
+config:
+  maxFailures: 10
+  maxFailurePercentage: 10
+  failuresRollingWindow: 30
+  timeout: -1 # ConnectivityService already applies a sufficient timeout
+  resetTimeout: 60

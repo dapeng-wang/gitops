@@ -1,0 +1,16 @@
+{{- if .Values.istio.enabled }}
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: lb-stickiness
+  labels: {{- include "app.labels" . | nindent 4 }}
+spec:
+  host: web
+  trafficPolicy:
+    loadBalancer:
+      consistentHash:
+        httpCookie:
+          name: lbstickiness
+          path: /
+          ttl: 0s
+{{- end }}

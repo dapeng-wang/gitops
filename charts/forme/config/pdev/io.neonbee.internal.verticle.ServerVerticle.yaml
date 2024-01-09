@@ -1,0 +1,122 @@
+---
+# the number of instances of server verticles to start, defaults to 16
+instances: 1
+
+# the configuration for the NeonBee server verticle
+config:
+    # one of: NONE, LOCAL or CLUSTERED, defaults to NONE
+    sessionHandling: LOCAL
+    # the name of the session cookie, defaults to neonbee-web.session
+    sessionCookieName: JSESSIONID
+    # the session timeout in minutes, defaults to 30
+    sessionTimeout: 1440
+
+    # one of: REQUEST_HEADER, GENERATE_UUID, defaults to REQUEST_HEADER
+    correlationStrategy: REQUEST_HEADER
+
+    # the number of seconds before the router timeout applies, defaults to 30
+    timeout: 115
+    # the status code for the default timeout, defaults to 504
+    timeoutStatusCode: 504
+
+    # the TCP connection read/write idle timeout, defaults to infinity. see [1] for a proper explanation of what read/write timeout means
+    # [1] https://netty.io/4.0/api/io/netty/handler/timeout/IdleStateHandler.html
+    idleTimeout: 120
+    # the TCP user timeout, see [1], defaults to 0 meaning system defaults. as our server is currently not keeping alive connections, we can set this option
+    # [1] https://man7.org/linux/man-pages/man7/tcp.7.html
+    tcpUserTimeout: 120000
+
+    # the maximum length of all HTTP headers, defaults to 8192 bytes
+    maxHeaderSize: 32768
+    # the maximum initial line length of the HTTP header (e.g. "GET / HTTP/1.0"), defaults to 4096 bytes
+    maxInitialLineLength: 8192
+
+    # specific endpoint configuration, defaults to the object seen below
+    endpoints:
+      # provides a OData V4 compliant endpoint, for accessing entity verticle data
+      - type: io.neonbee.endpoint.odatav4.ODataV4Endpoint
+        # enable the OData endpoint, defaults to true
+        enabled: true
+        # the base path to map this endpoint to, defaults to /odata/
+        basePath: /odata/
+        # endpoint specific authentication chain, defaults to null and using the default authentication chain
+        authenticationChain: ~
+        # namespace and service name URI mapping (STRICT, or LOOSE based on CDS)
+        uriConversion: LOOSE
+
+      # provides a REST endpoint (JSON, text, binary), for accessing data verticles
+      - type: io.neonbee.endpoint.raw.RawEndpoint
+        # enable the raw endpoint, defaults to true
+        enabled: true
+        # the base path to map this endpoint to, defaults to /raw/
+        basePath: /raw/public/
+        # endpoint specific authentication chain, defaults to null and using the default authentication chain
+        authenticationChain: []
+        # whether or not to expose hidden verticles, defaults to false
+        exposeHiddenVerticles: false
+        # a block / allow list of verticles to expose via this endpoint (defaults to empty all verticles exposed)
+        # the value of block / allow must be an array with Strings representing a regexp.
+        exposedVerticles:
+          # only specify a allow list, which results in all other services beeing blocked
+          allow:
+          - core/Routing
+          - core/IsolatedPingTest
+
+      # provides a REST endpoint (JSON, text, binary), for accessing data verticles
+      - type: io.neonbee.endpoint.raw.RawEndpoint
+        # enable the raw endpoint, defaults to true
+        enabled: true
+        # the base path to map this endpoint to, defaults to /raw/
+        basePath: /raw/
+        # endpoint specific authentication chain, defaults to null and using the default authentication chain
+        authenticationChain: ~
+        # whether or not to expose hidden verticles, defaults to false
+        exposeHiddenVerticles: false
+
+      # provides an Prometheus scraping endpoint for Micrometer.io metrics
+      - type: io.neonbee.endpoint.metrics.MetricsEndpoint
+        # enable the metrics endpoint, defaults to true
+        enabled: true
+        # the base path to map this endpoint to, defaults to /metrics/
+        basePath: /metrics/
+        # endpoint specific authentication chain, (special case!) defaults to an empty array [] and no authentication required
+        authenticationChain: ~
+
+      # provides an endpoint with health information
+      - type: io.neonbee.endpoint.health.HealthEndpoint
+        # enable the health endpoint, defaults to true
+        enabled: true
+        # the base path to map this endpoint to, defaults to /metrics/
+        basePath: /health/
+        # endpoint specific authentication chain, (special case!) defaults to an empty array [] and no authentication required
+        authenticationChain: []
+
+      # provides an endpoint with status information
+      - type: io.neonbee.endpoint.health.StatusEndpoint
+        # enable the health endpoint, defaults to true
+        enabled: true
+        # the base path to map this endpoint to, defaults to /metrics/
+        basePath: /status/
+        # endpoint specific authentication chain, (special case!) defaults to an empty array [] and no authentication required
+        authenticationChain: []
+
+    # default authentication chain, defaults to an empty array (no authentication), use:
+    authenticationChain:
+      # any of: BASIC, DIGEST, JWT, OAUTH2, REDIRECT, mandatory attribute
+      - type: JWT
+        # ... more authentication handler options (see the specific handler implementations)
+
+        # the authentication provider to be set for this handler
+        provider:
+          # the authentication provider to be set for this handler# any of: HTDIGEST, HTPASSWD, JDBC, JWT, MONGO, OAUTH2, mandatory attribute
+          type: JWT
+          # ... more authentication provider options (see the specific provider implementations)
+          jwtOptions:
+            leeway: 60
+          pubSecKeys:
+            - algorithm: RS256
+              buffer: {{ .Values.xsuaa.verificationkey }}
+
+    errorHandler: com.sap.me.shared.KibanaErrorHandler
+
+    tracingPolicy: ALWAYS

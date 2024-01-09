@@ -1,0 +1,10 @@
+apiVersion: v2
+name: vault-operator
+description: Sub chart for vault operator
+type: application
+version: 0.0.1
+appVersion: "0.0.1"
+dependencies:
+  - name: vault-secrets-operator
+    version: 0.3.3
+    repository: https://helm.releases.hashicorp.com

@@ -1,0 +1,10 @@
+apiVersion: v2
+name: dynatrace
+description: Sub chart for forme basic chart
+type: application
+version: 0.0.1
+appVersion: "0.0.1"
+dependencies:
+  - name: basic
+    version: 0.0.1
+    repository: oci://harbor.b4a63c3.kyma.ondemand.com/forme

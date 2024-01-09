@@ -1,0 +1,44 @@
+<configuration scan="true" scanPeriod="30 seconds">
+    <appender name="STDOUT_KYMA" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="com.sap.vertx.btp.logging.DefaultLoggingEncoder" />
+    </appender>
+    <appender name="ASYNC_STDOUT_KYMA" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="STDOUT_KYMA" />
+    </appender>
+
+    <appender name="STDOUT_LOCAL" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] {%marker} %level %logger - %msg%n</pattern>
+        </encoder>
+    </appender>
+    <appender name="ASYNC_STDOUT_LOCAL" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="STDOUT_LOCAL" />
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/neonbee.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- rollover daily -->
+            <fileNamePattern>${LOG_DIR}/neonbee_%d{yyyy-MM-dd}.log.%i</fileNamePattern>
+            <!-- each file should be at most 50MB, keep 60 days worth of history -->
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>60</maxHistory>
+            <totalSizeCap>2GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] {%marker} %level %logger - %msg%n</pattern>
+        </encoder>
+    </appender>
+    <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="FILE" />
+    </appender>
+
+    <logger name="com.hazelcast" level="WARN" />
+    <logger name="com.hazelcast.internal.cluster.impl.MembershipManager" level="ERROR" />
+
+    <!-- Configure so that it outputs to both console and log file, default log level is INFO -->
+    <root level="DEBUG">
+        <!-- For local development you can also use <appender-ref ref="ASYNC_STDOUT_LOCAL" /> or <appender-ref ref="FILE" /> -->
+        <appender-ref ref="ASYNC_STDOUT_KYMA" />
+    </root>
+</configuration>

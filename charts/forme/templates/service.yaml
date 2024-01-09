@@ -1,0 +1,97 @@
+{{- if .Values.expose.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  labels: {{- include "app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+spec:
+  type: ClusterIP
+  selector: {{- include "app.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+    exposed: "true"
+  ports:
+    - name: http
+      port: {{ .Values.expose.port | default 8080 }}
+      protocol: TCP
+{{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hazelcast-backend
+  labels: {{- include "app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector: {{- include "app.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+  ports:
+    - name: hazelcast-backend
+      port: {{ (index .Values.clusters "backend").hazelcastPort | default 5701 }}
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vertx-backend
+  labels: {{- include "app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector: {{- include "app.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+  ports:
+    - name: vertx-backend
+      port: {{ (index .Values.clusters "backend").clusterPort | default 9000 }}
+      protocol: TCP
+{{- if .Values.debugPort }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: debugger
+  labels: {{- include "app.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector: {{- include "app.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: debugger
+      port: {{ .Values.debugPort | default 5000 }}
+      protocol: TCP
+{{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hazelcast-refresher
+  labels: {{- include "app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: refresher
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector: {{- include "app.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: refresher
+  ports:
+    - name: hazelcast-refresher
+      port: {{ (index .Values.clusters "refresher").hazelcastPort | default 5702 }}
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vertx-refresher
+  labels: {{- include "app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: refresher
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector: {{- include "app.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: refresher
+  ports:
+    - name: vertx-refresher
+      port: {{ (index .Values.clusters "refresher").clusterPort | default 9001 }}
+      protocol: TCP

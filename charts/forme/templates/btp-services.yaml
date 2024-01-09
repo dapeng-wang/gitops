@@ -1,0 +1,72 @@
+{{- $platformServices := list -}}
+{{- range .Values.platformServices -}}
+    {{- $platformServices = append $platformServices . -}}
+{{- end -}}
+{{- range .Values.dbModels -}}
+    {{- if and .name .version -}}
+        {{- $dbModelName := printf "forme-hana-%s-db" .name -}}
+        {{- $found := false -}}
+
+        {{- range $platformServices -}}
+            {{- if .name -}}
+                {{- if eq .name $dbModelName -}}
+                    {{- $found = true -}}
+                {{- end -}}
+            {{- end -}}
+        {{- end -}}
+
+        {{- if not $found -}}
+            {{- $hdiSharedService := dict "service" "hana" "plan" "hdi-shared" "name" $dbModelName "parameters" (dict "schema" (upper .name)) -}}
+            {{- $platformServices = append $platformServices $hdiSharedService -}}
+        {{- end -}}
+    {{- end -}}
+{{- end -}}
+{{- range $platformServices }}
+    {{- $service := required "service parameter is required" (.service | trim) }}
+    {{- $instanceName := .name | default (printf "%s-%s" (include "app.name" $) $service) | trim }}
+    {{- $bindingName := printf "%s-credential" $instanceName }}
+---
+apiVersion: services.cloud.sap.com/v1
+kind: ServiceInstance
+metadata:
+  name: {{ $instanceName }}
+  labels: {{- include "app.labels" $ | nindent 4 }}
+spec:
+  serviceOfferingName: {{ $service }}
+  servicePlanName: {{ .plan }}
+  {{- if .parameters }}
+  parameters:
+{{- .parameters | toYaml | nindent 4 }}
+  {{- else }}
+    {{- if eq "cloud-logging" $service }}
+  parameters:
+    esApiEnabled: true
+    maxDataInstances: 10
+    maxIngestInstances: 5
+    ingest_otlp:
+      enabled: true
+    oidc:
+      admin_group: CLS_ADMIN
+      enabled: true
+      openid_client_id: {{ $.Values.cls.open_id_client_id }}
+      openid_client_secret: {{ $.Values.cls.open_id_client_secret }}
+      openid_connect_url: https://forme.accounts.ondemand.com/.well-known/openid-configuration
+      openid_scopes: openid email
+      roles_key: groups
+      subject_key: email
+    retentionPeriod: 7
+    {{- end }}
+  {{- end }}
+---
+apiVersion: services.cloud.sap.com/v1
+kind: ServiceBinding
+metadata:
+  name: {{ $bindingName }}
+  labels: {{- include "app.labels" $ | nindent 4 }}
+  annotations:
+    servicePrefix: {{ printf "%s_" ($instanceName | trimPrefix (include "app.name" $) | trimPrefix "-" | upper | replace "-" "_") }}
+spec:
+  parameters: {}
+  secretName: {{ $instanceName }}
+  serviceInstanceName: {{ $instanceName }}
+{{- end }}

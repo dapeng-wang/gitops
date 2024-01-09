@@ -1,0 +1,122 @@
+# Default values for the forme helm chart.
+
+nameOverride: !!str ""
+fullnameOverride: !!str ""
+
+# The name of the landscape to be deployed (required)
+# E.g. "'dev', 'test', 'stage'
+landscape: !!str ""
+
+# Global number of replicas per deployment. Can be overridden with nodes.replicas / refresher.replicas
+replicaCount: !!int 1
+
+expose:
+  # Whether backend should be exposed via API Rule
+  enabled: !!bool true
+  # Host name to expose via API Rule (i.e. https://<host>.<cluster-domain>, where
+  # <host> := <app>-backend-<landscape> per default)
+  host: !!str ""
+  # The server port that exposes the backend
+  port: !!int 8080
+
+# Whether backend should run the job to redeploy entities
+redeployMissingEntities: !!bool false
+
+global:
+  # Name of the docker registry secret. This secret is required and expected to be present in the namespace
+  imagePullSecret: !!str forme-docker-regcred
+  # Credential with user-provided credentials. Key == Filename, Value == Secret.
+  userProvidedSecret: !!str forme-custom-credentials
+  # Credential containing the verificationkey of xsuaa
+  # Required for the e2e task. The gradle plugin reads the verificationkey.
+  xsuaaSecret: !!str forme-uaa-pub-key
+  # vcap_services content
+  # Required for the tunnel & e2e task.
+  vcapServices: !!str vcap-services
+
+# Whether Istio injection should be disabled in forme deployments.
+# Creates an istio destination rule which ensures session stickiness
+# Should be disabled for clustered installations, as the istio co-deployed
+# sideacar container is an unnecessary layer, which causes problems in the
+# tcp connections of the hazelcast cluster. In the allinone setup, we can
+# enable istio, as there is no tcp communication between the nodes.
+istio:
+  enabled: !!bool false
+
+# Credentials provided via secrets.yaml
+credentials:
+  dockerAuth: {}
+  dynatrace: {}
+  vcapServices: {}
+
+# Configures the health check as liveness probe
+health:
+  liveness:
+    path: !!str /status
+
+# Deploys a tracepipeline which ingests distributed traces of Kyma
+# and forwards them to the OTLP endpoint referenced in the tracing.ingestSecret
+tracing:
+  enabled: false
+  ingestSecret: forme-cloud-logging
+
+# Deploys a logging pipeline which ingests application and acceess logs
+# https://pages.github.tools.sap/perfx/cloud-logging-service/documentation/ship/kyma/
+logging:
+  enabled: false
+  ingestSecret: forme-cloud-logging
+
+# Cloud Logging service endpoint (required for KibanaErrorHandler)
+loggingEndpoint: !!str ""
+
+# Artifactory endpoint used to fetch db assets
+artifactory:
+  cloudConnector: !!str ""
+  endpoint: !!str ""
+
+# The number of seconds to wait before forcibly terminating a pod.
+# This is useful to allow the pod to finish any tasks and perform a graceful shutdown.
+terminationGracePeriodSeconds: !!int 30
+
+availability:
+  topologySpreadConstraints:
+  - topologyKey: topology.kubernetes.io/zone
+    maxSkew: 1
+    whenUnsatisfiable: ScheduleAnyway
+  - topologyKey: kubernetes.io/hostname
+    maxSkew: 1
+    whenUnsatisfiable: ScheduleAnyway
+
+# Docker registry configuration
+image:
+  pullPolicy: !!str Always
+  registry: !!str forme.common.repositories.cloud.sap
+  repository: !!str factory
+  tag: !!str latest
+
+# NeonBee cluster definition
+clusters:
+  backend:
+    hazelcastPort: !!int 5701
+    clusterPort: !!int 9000
+  refresher:
+    hazelcastPort: !!int 5702
+    clusterPort: !!int 9001
+    interval: !!str "0$[0123456789]"
+
+debugPort: !!int 5000
+
+connectivity:
+  host: !!str connectivity-proxy.kyma-system.svc.cluster.local
+  port: !!int 20003
+
+xsuaa:
+  verificationkey: !!str |
+    -----BEGIN PUBLIC KEY-----\n...base64 decoded...\n-----END PUBLIC KEY-----
+  xsappname: !!str ""
+
+platformServices: []
+
+dbModels: []
+
+nodes: []

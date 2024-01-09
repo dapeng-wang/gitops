@@ -1,0 +1,55 @@
+Please wait a few seconds until chart {{ .Chart.Name }} is fully installed.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }}
+  $ helm get all {{ .Release.Name }}
+
+Visit your application at: https://{{ .Release.Namespace }}.cfapps.eu10.hana.ondemand.com/
+
+>< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< ><
+Secrets
+>< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< ><
+
+List all BTP service instances
+
+  $ kubectl get serviceinstances -l app.kubernetes.io/instance=forme --no-headers -o custom-columns=:metadata.name
+
+Get and decode a secret (requires jq)
+
+  $ kubectl get secret forme-feature-flags -o jsonpath='{.data}' | jq '. | map_values(@base64d)'
+
+>< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< ><
+Connectivity Service
+>< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< ><
+
+Restart the connectivity service
+
+  $ kubectl rollout restart sts connectivity-proxy -n kyma-system
+
+Check the logs of the connectivity service
+
+  $ kubectl logs -f connectivity-proxy-0 -n kyma-system
+
+>< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< ><
+Deployment
+>< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< >< ><
+
+Restart all forme deployments by selecting the respective label:
+
+  $ kubectl rollout restart --namespace {{ .Release.Namespace }} deployment \
+      --selector=app.kubernetes.io/name=forme
+
+Restart only specific components, e.g. the refresher
+
+  $ kubectl rollout restart --namespace {{ .Release.Namespace }} deployment \
+      --selector=app.kubernetes.io/component=refresher
+
+Restart the backend deployments
+
+  $ kubectl rollout restart --namespace {{ .Release.Namespace }} deployment \
+      --selector=app.kubernetes.io/component=backend
+
+Scale a certain deployment, e.g. the web component from 2 to 3 replicas,
+
+  $ kubectl scale --current-replicas=2 --replicas=3 deployment/web

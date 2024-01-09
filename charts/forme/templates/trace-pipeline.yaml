@@ -1,0 +1,30 @@
+{{ if and .Values.tracing (default .Values.tracing.enabled false) }}
+apiVersion: telemetry.kyma-project.io/v1alpha1
+kind: TracePipeline
+metadata:
+  name: cls
+  namespace: kyma-system
+  labels: {{- include "app.labels" . | nindent 4 }}
+spec:
+  output:
+    otlp:
+      endpoint:
+        valueFrom:
+          secretKeyRef:
+            name: {{ .Values.tracing.ingestSecret | default "forme-cloud-logging" }}
+            namespace: {{ .Release.Namespace }}
+            key: ingest-otlp-endpoint
+      tls:
+        cert:
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.tracing.ingestSecret | default "forme-cloud-logging" }}
+              namespace: {{ .Release.Namespace }}
+              key: ingest-otlp-cert
+        key:
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.tracing.ingestSecret | default "forme-cloud-logging" }}
+              namespace: {{ .Release.Namespace }}
+              key: ingest-otlp-key
+{{- end }}

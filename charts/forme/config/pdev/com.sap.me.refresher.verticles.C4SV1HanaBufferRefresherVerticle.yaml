@@ -1,0 +1,10 @@
+---
+instances: 1
+worker: true
+config:
+  enabled: true
+  batch-size: 50
+  concurrency: 10
+  number-of-nodes: 1
+  delta-in-hours: 4
+  timeout: 45000

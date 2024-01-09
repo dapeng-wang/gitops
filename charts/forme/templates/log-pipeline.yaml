@@ -1,0 +1,76 @@
+{{ if and .Values.logging (default .Values.logging.enabled false) }}
+apiVersion: telemetry.kyma-project.io/v1alpha1
+kind: LogPipeline
+metadata:
+  name: cls-application-logs
+  namespace: kyma-system
+  labels: {{- include "app.labels" . | nindent 4 }}
+spec:
+  input:
+    application:
+      namespaces:
+        exclude:
+          - argocd
+          - dynatrace
+          - harbor
+      containers:
+        exclude:
+          - istio-proxy
+  output:
+    http:
+      dedot: true
+      host:
+        valueFrom:
+          secretKeyRef:
+            name: {{ .Values.logging.ingestSecret | default "forme-cloud-logging" }}
+            namespace: {{ .Release.Namespace }}
+            key: ingest-mtls-endpoint
+      tls:
+        cert:
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.logging.ingestSecret | default "forme-cloud-logging" }}
+              namespace: {{ .Release.Namespace }}
+              key: ingest-mtls-cert
+        key:
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.logging.ingestSecret | default "forme-cloud-logging" }}
+              namespace: {{ .Release.Namespace }}
+              key: ingest-mtls-key
+      uri: /customindex/kyma
+---
+apiVersion: telemetry.kyma-project.io/v1alpha1
+kind: LogPipeline
+metadata:
+  name: cls-access-logs
+spec:
+  input:
+    application:
+      containers:
+        include:
+          - istio-proxy
+  output:
+    http:
+      dedot: true
+      host:
+        valueFrom:
+          secretKeyRef:
+            name: {{ .Values.logging.ingestSecret | default "forme-cloud-logging" }}
+            namespace: {{ .Release.Namespace }}
+            key: ingest-mtls-endpoint
+      tls:
+        cert:
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.logging.ingestSecret | default "forme-cloud-logging" }}
+              namespace: {{ .Release.Namespace }}
+              key: ingest-mtls-cert
+        key:
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.logging.ingestSecret | default "forme-cloud-logging" }}
+              namespace: {{ .Release.Namespace }}
+              key: ingest-mtls-key
+      uri: /customindex/istio-envoy-kyma
+{{- end }}

@@ -1,0 +1,92 @@
+{{- if $.Values.artifactory }}
+    {{- if $.Values.artifactory.endpoint }}
+        {{- $componentNames := list }}
+        {{- $componentVersions := list }}
+        {{- range .Values.dbModels }}
+            {{- if and .name .version }}
+              {{- $secretName := printf "%s-hana-%s-db" (include "app.name" $) (.name | trim) }}
+              {{- if (lookup "v1" "Secret" $.Release.Namespace $secretName) }}
+                {{- $componentNames = append $componentNames (.name | trim) }}
+                {{- $componentVersions = append $componentVersions .version }}
+              {{- end }}
+            {{- end }}
+        {{- end }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: deploy-db-assets
+  labels: {{- include "app.labels" $ | nindent 4 }}
+  annotations:
+    {{/*
+    Use pre-upgrade here, as during the very first deployment (pre-install)
+    the BTP services required here, have not been initialized yet (e.g. the secret)
+    */}}
+    helm.sh/hook: pre-upgrade
+    helm.sh/hook-weight: "1"
+    helm.sh/hook-delete-policy: before-hook-creation
+spec:
+  {{/*
+  Set the property ttlSecondsAfterFinished, if jobs should be cleaned-up
+  automatically after a certain period of time.
+  */}}
+  ttlSecondsAfterFinished: 300
+  completions: {{ len $componentNames }}
+  parallelism: {{ len $componentNames }}
+  completionMode: Indexed
+  backoffLimit: 3
+  template:
+    metadata:
+      name: deploy-db-asset
+      labels: {{- include "app.labels" $ | nindent 8 }}
+        sidecar.istio.io/inject: "false"
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: deploy-db-asset
+        image: node:18
+        env:
+        - name: SERVICE_BINDING_ROOT
+          value: /bindings
+        - name: COMPONENT_NAMES
+          value: {{ join ";" $componentNames }}
+        - name: COMPONENT_VERSIONS
+          value: {{ join ";" $componentVersions }}
+        {{- if $.Values.artifactory.endpoint }}
+        - name: ARTIFACTORY
+          value: {{ $.Values.artifactory.endpoint | trim }}
+        {{- end }}
+        command:
+        - /bin/bash
+        - -c
+        - |
+          IFS=';' read -ra COMPONENT_NAMES_ARR <<< "$COMPONENT_NAMES"
+          IFS=';' read -ra COMPONENT_VERSIONS_ARR <<< "$COMPONENT_VERSIONS"
+          c="${COMPONENT_NAMES_ARR[$JOB_COMPLETION_INDEX]}"
+          v="${COMPONENT_VERSIONS_ARR[$JOB_COMPLETION_INDEX]}"
+          set -e ; npm i -g @sap/hdi-deploy@4.6.1
+          if [ "$v" = "latest" ]; then
+            v="$(curl -s -H "SAP-Connectivity-SCC-Location_ID: {{ $.Values.artifactory.cloudConnector }}" --proxy http://{{ $.Values.connectivity.host }}:{{ $.Values.connectivity.port }} "${ARTIFACTORY}"/"$c"-models/latest | grep 'version' | sed 's/\"version\"//g' | tr -d '"|,|:| |\n')"
+          fi
+          echo "Downloading $c (version $v) db assets"
+          curl -s -H "SAP-Connectivity-SCC-Location_ID: {{ $.Values.artifactory.cloudConnector }}" --proxy http://{{ $.Values.connectivity.host }}:{{ $.Values.connectivity.port }} "${ARTIFACTORY}"/"$c"-models/-/"$c"-models-"${v}".tgz | tar -xz
+          # bindings may only contain a single entry to the DB we want to connect to, so we copy the right credentials from /secrets/auth-...
+          mkdir -p /bindings/auth
+          cp -r /secrets/auth-$c/. /bindings/auth/
+          node /usr/local/lib/node_modules/@sap/hdi-deploy --verbose --exit --root package/gen/db/ --deploy src/*.hdb*
+          echo "Deployment of db assets $c/$v finished successfully with status code: $?"
+        volumeMounts:
+        {{- range $componentNames }}
+        - mountPath: {{ printf "/secrets/auth-%s" . }}
+          name: {{ printf "secret-volume-%s" . }}
+          readOnly: true
+        {{- end }}
+      volumes:
+        {{- range $componentNames }}
+      - name: {{ printf "secret-volume-%s" . }}
+        secret:
+          defaultMode: 420
+          secretName: {{ printf "%s-hana-%s-db" (include "app.name" $) . }}
+        {{- end }}
+    {{- end }}
+{{- end }}

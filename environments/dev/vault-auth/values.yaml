@@ -1,0 +1,20 @@
+basic:
+  application:
+    name: 'vault-auth'
+
+  vaultAuths:
+    - name: 'vault-auth'
+      vaultNamespace: forme/landscapes/dev
+      allowedNamespaces:
+        - dynatrace
+        - forme-dev
+
+  serviceAccounts:
+    - name: 'vault'
+
+  secrets:
+    - name: 'vault-service-account-token'
+      annotations:
+        kubernetes.io/service-account.name: vault-service-account
+      type: kubernetes.io/service-account-token
+
