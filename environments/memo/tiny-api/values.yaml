@@ -32,4 +32,4 @@ basic:
           successThreshold: 1
           timeoutSeconds: 1
         ingress:
-          path: '/tiny'
+          path: '/tiny/'

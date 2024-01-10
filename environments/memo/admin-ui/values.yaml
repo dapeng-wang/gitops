@@ -14,4 +14,4 @@ basic:
         image: 'dapengwang/admin-ui:1.0.0'
         containerPort: 8080
         ingress:
-          path: '/admin-ui'
+          path: '/admin-ui/'
