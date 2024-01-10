@@ -3,6 +3,10 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
+  annotations:
+    {{- if and (hasKey $ingress "strip") (eq $ingress.strip "true") }}
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    {{- end }}
   name: {{ $.Values.application.name }}-ingress
   {{ include "metadata.namespace" $ }}
   {{ include "metadata.labels" $ }}
@@ -13,7 +17,7 @@ spec:
       http:
         paths:
 {{- range .Values.deployment.containers }}
-        - path: '{{ .ingress.path }}'
+        - path: {{ .ingress.path }}
           pathType: Prefix
           backend:
             service:

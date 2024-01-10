@@ -5,6 +5,7 @@ basic:
 
   ingress:
     host: local.me
+    strip: "true"
 
   deployment:
     replicaCount: 1
@@ -14,4 +15,4 @@ basic:
         image: 'dapengwang/admin-ui:1.0.0'
         containerPort: 8080
         ingress:
-          path: '/admin-ui/'
+          path: /admin-ui/?(.*)
