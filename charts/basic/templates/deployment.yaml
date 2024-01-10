@@ -41,14 +41,10 @@ spec:
           {{- if .livenessProbe}}
           livenessProbe:
 {{ toYaml .livenessProbe | trim | indent 12 }}
-          {{- else }}
-{{ toYaml $.Values.deploymentDefaults.livenessProbe | trim | indent 12 }}
           {{- end }}
           {{- if .readinessProbe}}
           readinessProbe:
 {{ toYaml .readinessProbe | trim | indent 12 }}
-          {{- else }}
-{{ toYaml $.Values.deploymentDefaults.readinessProbe | trim | indent 12 }}
           {{- end }}
           resources:
 {{- if hasKey . "resources" }}

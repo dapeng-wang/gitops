@@ -55,7 +55,7 @@ configs:
       url: https://github.com/dapeng-wang/gitops.git
       name: dapeng-gitops-repo
       username: dapeng-wang
-      password: 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
+      password:
 
 dex:
   # -- Enable dex

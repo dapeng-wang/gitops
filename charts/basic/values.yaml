@@ -24,18 +24,16 @@ deploymentDefaults:
   imagePullPolicy: Always
   # -- default liveness probe settings
   livenessProbe:
-    enabled: true
     failureThreshold: 3
-    path: "/healthcheck"
+    path: "/"
     initialDelaySeconds: 15
     periodSeconds: 10
     successThreshold: 1
     timeoutSeconds: 1
   # -- default readiness probe settings
   readinessProbe:
-    enabled: true
     failureThreshold: 3
-    path: "/healthcheck"
+    path: "/"
     initialDelaySeconds: 15
     periodSeconds: 10
     successThreshold: 1
