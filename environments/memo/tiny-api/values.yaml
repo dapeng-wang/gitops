@@ -1,6 +1,10 @@
 basic:
   application:
-    name: 'tinyapi'
+    name: 'tiny-api'
+    type: 'microservice'
+
+  ingress:
+    host: local.me
 
   deployment:
     replicaCount: 1
@@ -27,3 +31,5 @@ basic:
           periodSeconds: 10
           successThreshold: 1
           timeoutSeconds: 1
+        ingress:
+          path: tiny

@@ -1,0 +1,10 @@
+apiVersion: v2
+name: admin-ui
+description: Sub chart for admin ui
+type: application
+version: 0.0.1
+appVersion: "0.0.1"
+dependencies:
+  - name: basic
+    version: 0.0.1
+    repository: https://dev.clinitrix.ch/store/charts

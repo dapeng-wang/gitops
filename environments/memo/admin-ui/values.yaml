@@ -1,0 +1,17 @@
+basic:
+  application:
+    name: 'admin-ui'
+    type: 'frontend'
+
+  ingress:
+    host: local.me
+
+  deployment:
+    replicaCount: 1
+
+    containers:
+      - name: 'admin-ui'
+        image: 'dapengwang/admin-ui:1.0.0'
+        containerPort: 8080
+        ingress:
+          path: admin-ui
