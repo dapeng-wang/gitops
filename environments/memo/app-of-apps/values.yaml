@@ -7,4 +7,4 @@ app-of-apps:
     - ../.environment/values.yaml
   applications:
     - name: tiny-api
-    - name: admin-api
+    - name: admin-ui
