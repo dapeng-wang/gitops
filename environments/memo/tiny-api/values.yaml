@@ -8,7 +8,7 @@ basic:
     strip: "false"
 
   deployment:
-    replicaCount: 2
+    replicaCount: 3
 
     containers:
       - name: 'tiny-api'
