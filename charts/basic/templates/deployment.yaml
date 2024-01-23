@@ -10,7 +10,7 @@ spec:
   selector:
     matchLabels:
       app: {{ $.Values.application.name }}
-      sidecar.istio.io/inject: {{ $deployment.istioEnabled | default $.Values.deploymentDefaults.istioEnabled | quote }}
+      type: {{ $.Values.application.type }}
   replicas: {{ $deployment.replicaCount | default $.Values.deploymentDefaults.replicaCount}}
   revisionHistoryLimit: 2
   strategy:
@@ -22,7 +22,7 @@ spec:
     metadata:
       labels:
         app: {{ $.Values.application.name }}
-        sidecar.istio.io/inject: {{ $deployment.istioEnabled | default $.Values.deploymentDefaults.istioEnabled | quote }}
+        type: {{ $.Values.application.type }}
     spec:
       terminationGracePeriodSeconds: 30
       containers:

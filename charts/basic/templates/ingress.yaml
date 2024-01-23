@@ -25,7 +25,7 @@ spec:
               port:
                 number: {{ .containerPort }}
   {{- end }}
-tls:
-  - hosts:
-      - {{ .Values.ingress.host }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host }}
 {{- end }}
