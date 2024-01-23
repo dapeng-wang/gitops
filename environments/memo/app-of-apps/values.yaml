@@ -6,5 +6,5 @@ app-of-apps:
   defaultValueFiles:
     - ../.environment/values.yaml
   applications:
-#    - name: tiny-api
+    - name: tiny-api
     - name: admin-ui
