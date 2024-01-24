@@ -1,14 +1,14 @@
 basic:
   application:
     name: 'tiny-api'
-    type: 'microservice'
+    type: 'backend'
 
   ingress:
     host: local.me
     strip: "false"
 
   deployment:
-    replicaCount: 1
+    replicaCount: 3
 
     containers:
       - name: 'tiny-api'
