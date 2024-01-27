@@ -1,0 +1,89 @@
+basic:
+  application:
+    name: 'admin-manager'
+    type: 'backend'
+    statefulset:
+      enabled: true
+    deployment:
+      enabled: false
+  ingress:
+    host: local.me
+    strip: "false"
+
+  statefulset:
+    replicaCount: 1
+    serviceAccount: admin-manager-service-account
+    containers:
+      - name: 'admin-manager'
+        image: 'dapengwang/admin-manager:1.0.0'
+        env:
+          - name: MEMO_PLANT
+            value: EWA
+          - name: KEYCLOAK_SERVER
+            value: 'https://localhost:8080/auth'
+          - name: KEYCLOAK_REALM
+            value: 'memo-ewa'
+          - name: ADMIN_CLIENT_ID
+            value: 'memo-ewa'
+          - name: ADMIN_CLIENT_SECRET
+            value: 'memo-ewa-secret'
+          - name: SCHEDULEDJOB_ENABLED
+            value: 'false'
+          - name: OIDC_ENABLED
+            value: 'false'
+          - name: KUBERNETES_NAMESPACE
+            value: 'memo'
+        containerPort: 6000
+        resources:
+          limits:
+            memory: 1Gi
+          requests:
+            cpu: 100m
+            memory: 512Mi
+        livenessProbe:
+          path: "/admin-manager/actuator/health"
+          initialDelaySeconds: 30
+        readinessProbe:
+          path: "/admin-manager/actuator/health"
+          initialDelaySeconds: 30
+        volumeMounts:
+          - name: admin-manager-services-config
+            mountPath: /app/config/application.yaml
+            subPath: application.yaml
+        ingress:
+          path: /admin-manager/?(.*)
+
+  serviceAccounts:
+    - name: admin-manager
+
+  roles:
+    - name: admin-manager
+      namespace: memo
+      apiGroups:
+        - '""'
+        - apps
+        - extensions
+        - rbac.authorization.k8s.io
+        - networking.k8s.io
+        - memo.siemens.com
+      resources:
+        - pods
+        - configmaps
+        - deployments
+        - replicasets
+        - services
+        - ingresses
+        - scheduledjobs
+        - scheduledjobs/status
+      verbs:
+        - "get"
+        - "list"
+        - "patch"
+        - "update"
+        - "watch"
+
+  roleBindings:
+    - name: admin-manager
+      role: admin-manager-role
+      serviceAccount: admin-manager-service-account
+      namespace: memo
