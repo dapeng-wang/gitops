@@ -22,22 +22,6 @@ deploymentDefaults:
       memory: 128Mi
   # -- default image pull policy
   imagePullPolicy: Always
-  # -- default liveness probe settings
-  livenessProbe:
-    failureThreshold: 3
-    path: "/"
-    initialDelaySeconds: 15
-    periodSeconds: 10
-    successThreshold: 1
-    timeoutSeconds: 1
-  # -- default readiness probe settings
-  readinessProbe:
-    failureThreshold: 3
-    path: "/"
-    initialDelaySeconds: 15
-    periodSeconds: 10
-    successThreshold: 1
-    timeoutSeconds: 1
 
 
 # -- general statefulset settings
@@ -59,19 +43,3 @@ statefulsetDefaults:
       memory: 128Mi
   # -- default image pull policy
   imagePullPolicy: Always
-  # -- default liveness probe settings
-  livenessProbe:
-    failureThreshold: 3
-    path: "/"
-    initialDelaySeconds: 15
-    periodSeconds: 10
-    successThreshold: 1
-    timeoutSeconds: 1
-  # -- default readiness probe settings
-  readinessProbe:
-    failureThreshold: 3
-    path: "/"
-    initialDelaySeconds: 15
-    periodSeconds: 10
-    successThreshold: 1
-    timeoutSeconds: 1
