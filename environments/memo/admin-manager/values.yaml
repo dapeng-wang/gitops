@@ -15,7 +15,7 @@ basic:
     serviceAccount: admin-manager-service-account
     containers:
       - name: 'admin-manager'
-        image: 'dapengwang/admin-manager:1.0.0'
+        image: 'dapengwang/admin-manager:0.0.8'
         env:
           - name: MEMO_PLANT
             value: EWA
