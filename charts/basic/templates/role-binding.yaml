@@ -1,0 +1,18 @@
+{{- if .Values.roleBindings }}
+{{- range $roleBinding := .Values.roleBindings }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $roleBinding.name }}-role-binding
+  {{ include "metadata.labels" $ }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ $roleBinding.role }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $roleBinding.serviceAccount }}
+    namespace: {{ $roleBinding.namespace }}
+{{- end }}
+{{- end }}

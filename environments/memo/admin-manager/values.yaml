@@ -46,10 +46,6 @@ basic:
         readinessProbe:
           path: "/admin-manager/actuator/health"
           initialDelaySeconds: 30
-        volumeMounts:
-          - name: admin-manager-services-config
-            mountPath: /app/config/application.yaml
-            subPath: application.yaml
         ingress:
           path: /admin-manager/?(.*)
 

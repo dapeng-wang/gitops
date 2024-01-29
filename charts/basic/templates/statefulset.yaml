@@ -1,0 +1,87 @@
+{{- if .Values.statefulset -}}
+{{- $statefulset := .Values.statefulset }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Values.application.name }}
+  {{ include "metadata.labels" . }}
+  annotations:
+    reloader.stakater.com/auto: "true"
+spec:
+  selector:
+    matchLabels:
+      app:  {{ .Values.application.name }}
+      type: {{ .Values.application.type }}
+  replicas: {{ $statefulset.replicaCount | default $.Values.deploymentDefaults.replicaCount}}
+  revisionHistoryLimit: 2
+  template:
+    metadata:
+      annotations:
+      # rollme: {{ .Values.TAG | default (randAlphaNum 5) | quote }}
+      labels:
+        app:  {{ .Values.application.name }}
+        type: {{ .Values.application.type }}
+        app.kubernetes.io/part-of: {{ .Values.application.group | default .Values.application.name }}
+    spec:
+      terminationGracePeriodSeconds: 30
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: {{ .Values.application.name }}
+      containers:
+{{- range $statefulset.containers }}
+        - name: {{ .name }}
+          image: "{{ .image }}"
+          imagePullPolicy: "Always"
+{{- if hasKey . "env" }}
+          env:
+{{ toYaml .env | trim | indent 12 }}
+{{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .containerPort }}
+              protocol: TCP
+          {{- if .livenessProbe}}
+          livenessProbe:
+{{ toYaml .livenessProbe | trim | indent 12 }}
+          {{- end }}
+          {{- if .readinessProbe}}
+          readinessProbe:
+{{ toYaml .readinessProbe | trim | indent 12 }}
+          {{- end }}
+          resources:
+{{- if hasKey . "resources" }}
+{{ toYaml .resources | trim | indent 12 }}
+{{- else }}
+{{ toYaml $.Values.deploymentDefaults.resources | trim | indent 12 }}
+{{- end }}
+{{- if .volumeMounts }}
+          volumeMounts:
+{{- range $mount := .volumeMounts }}
+            - name: {{ $mount.name }}
+              mountPath: {{ $mount.mountPath }}
+              {{- if hasKey . "subPath" }}
+              subPath: {{ $mount.subPath }}
+              {{- end }}
+              readOnly: {{ $mount.readOnly | default true}}
+{{- end -}}
+{{- end -}}
+{{ end }}
+      restartPolicy: {{ .Values.statefulset.restartPolicy | default "Always"}}
+      {{- if not (eq .Values.statefulset.serviceAccount "") }}
+      serviceAccountName: {{ $.Values.statefulset.serviceAccount }}
+      {{- end }}
+      volumes:
+      {{- range $volume := $statefulset.volumes }}
+      - name: {{ $volume.name }}
+      {{- if eq $volume.type "configMap" }}
+        configMap:
+      {{- else if eq $volume.type "secret" }}
+        secret:
+      {{- end }}
+          name:  {{ $volume.source }}
+      {{- end -}}
+{{- end -}}
