@@ -45,8 +45,8 @@ basic:
             path: "/admin-manager/actuator/health"
             port: 6000
           failureThreshold: 3
-          initialDelaySeconds: 15
-          periodSeconds: 10
+          initialDelaySeconds: 30
+          periodSeconds: 30
           successThreshold: 1
           timeoutSeconds: 1
         readinessProbe:
@@ -54,8 +54,8 @@ basic:
             path: "/admin-manager/actuator/health"
             port: 6000
           failureThreshold: 3
-          initialDelaySeconds: 15
-          periodSeconds: 10
+          initialDelaySeconds: 30
+          periodSeconds: 30
           successThreshold: 1
           timeoutSeconds: 1
         ingress:
