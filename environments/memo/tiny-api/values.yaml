@@ -12,7 +12,7 @@ basic:
 
     containers:
       - name: 'tiny-api'
-        image: 'dapengwang/tiny-api:1.0.0'
+        image: 'dapengwang/tiny-api:1.0.1'
         containerPort: 6666
         livenessProbe:
           httpGet:
