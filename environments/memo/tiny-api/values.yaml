@@ -19,7 +19,7 @@ basic:
             path: "/tiny/actuator/health"
             port: 6666
           failureThreshold: 3
-          initialDelaySeconds: 15
+          initialDelaySeconds: 1
           periodSeconds: 10
           successThreshold: 1
           timeoutSeconds: 1
@@ -28,7 +28,7 @@ basic:
             path: "/tiny/actuator/health"
             port: 6666
           failureThreshold: 3
-          initialDelaySeconds: 15
+          initialDelaySeconds: 1
           periodSeconds: 10
           successThreshold: 1
           timeoutSeconds: 1
