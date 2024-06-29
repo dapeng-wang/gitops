@@ -1,0 +1,48 @@
+{{- if .Values.ingress  -}}
+{{- $ingress := .Values.ingress }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    {{- if and (hasKey $ingress "strip") (eq $ingress.strip "true") }}
+    konghq.com/strip-path: "{{ .Values.ingress.stripPath }}"
+    {{- end }}
+  name: {{ $.Values.application.name }}-kong-ingress
+  {{ include "metadata.namespace" $ }}
+  {{ include "metadata.labels" $ }}
+spec:
+  ingressClassName: kong
+  rules:
+    - host: {{ $ingress.host }}
+      http:
+        paths:
+          {{- if .Values.deployment }}
+          {{- range .Values.deployment.containers }}
+          {{- if hasKey . "ingress" }}
+        - path: {{ .ingress.kongPath }}
+          pathType: Prefix
+          backend:
+            service:
+              name: {{ .name }}-service
+              port:
+                number: {{ .containerPort }}
+          {{- end }}
+          {{- end }}
+          {{- end }}
+          {{- if .Values.statefulset }}
+          {{- range .Values.statefulset.containers }}
+          {{- if hasKey . "ingress" }}
+        - path: {{ .ingress.kongPath }}
+          pathType: Prefix
+          backend:
+            service:
+              name: {{ .name }}-service
+              port:
+                number: {{ .containerPort }}
+          {{- end }}
+          {{- end }}
+          {{- end }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host }}
+{{- end }}

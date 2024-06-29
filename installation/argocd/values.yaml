@@ -56,6 +56,8 @@ configs:
       name: dapeng-gitops-repo
       username: dapeng-wang
       password:
+## dapengwang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dapengwang
+
 
 dex:
   # -- Enable dex
