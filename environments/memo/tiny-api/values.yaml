@@ -6,6 +6,7 @@ basic:
   ingress:
     host: local.me
     strip: "false"
+    stripPath: "/tinypity"
 
   deployment:
     replicaCount: 1

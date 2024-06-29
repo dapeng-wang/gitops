@@ -4,7 +4,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
-    {{- if and (hasKey $ingress "strip") (eq $ingress.strip "true") }}
+    {{- if and (hasKey $ingress "stripPath")}}
     konghq.com/strip-path: "{{ .Values.ingress.stripPath }}"
     {{- end }}
   name: {{ $.Values.application.name }}-kong-ingress
