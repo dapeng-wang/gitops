@@ -51,11 +51,11 @@ configs:
   ## Creates a secret for each key/value specified below to create repositories
   ## Note: the last example in the list would use a repository credential template, configured under "configs.repositoryCredentials".
   repositories:
-    dapeng-gitops:
-      url: https://github.com/dapeng-wang/gitops.git
-      name: dapeng-gitops-repo
-      username: dapeng-wang
-      password:
+#    dapeng-gitops:
+#      url: https://github.com/dapeng-wang/gitops.git
+#      name: dapeng-gitops-repo
+#      username: dapeng-wang
+#      password:
 ## dapengwang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dapengwang
 
 
@@ -148,6 +148,11 @@ extraObjects:
           server: 'https://kubernetes.default.svc'
         - namespace: argocd
           server: 'https://kubernetes.default.svc'
+        - namespace: kong
+          server: 'https://kubernetes.default.svc'
+      clusterResourceWhitelist:
+        - group: '*'
+          kind: '*'
       orphanedResources:
         warn: false
       sourceRepos:

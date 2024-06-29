@@ -8,7 +8,7 @@ app-of-apps:
   applications:
     - name: tiny-api
     - name: admin-ui
-    - name: kong-ingress-controller
+    - name: kong
       namespace: kong
 #    - name: admin-manager
   syncPolicy:
