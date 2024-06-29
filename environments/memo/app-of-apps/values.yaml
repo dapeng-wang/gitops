@@ -8,8 +8,8 @@ app-of-apps:
   applications:
     - name: tiny-api
     - name: admin-ui
-#    - name: kong
-#      namespace: kong
+    - name: kong
+      namespace: kong
 #    - name: admin-manager
   syncPolicy:
     automated: # automated sync by default retries failed attempts 5 times with following delays between attempts ( 5s, 10s, 20s, 40s, 80s ); retry controlled using `retry` field.
