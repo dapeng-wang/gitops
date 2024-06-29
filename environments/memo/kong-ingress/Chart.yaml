@@ -4,6 +4,6 @@ type: application
 version: 0.0.1
 appVersion: "0.0.1"
 dependencies:
-  - name: kong
+  - name: ingress
     version: 0.13.1
     repository: https://charts.konghq.com
