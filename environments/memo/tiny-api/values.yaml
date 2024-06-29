@@ -34,4 +34,4 @@ basic:
           timeoutSeconds: 1
         ingress:
           path: /tiny/?(.*)
-          kongPath: /tinypity/?(.*)
+          kongPath: /tinypity
