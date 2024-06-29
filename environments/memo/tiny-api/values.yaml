@@ -4,9 +4,9 @@ basic:
     type: 'backend'
 
   ingress:
-    host: local.me
-    strip: "false"
-    stripPath: "/tinypity"
+    kong:
+      host: local.me
+      stripPath: ""
 
   deployment:
     replicaCount: 1
@@ -35,4 +35,4 @@ basic:
           timeoutSeconds: 1
         ingress:
           path: /tiny/?(.*)
-          kongPath: /tinypity
+          kongPath: /tiny

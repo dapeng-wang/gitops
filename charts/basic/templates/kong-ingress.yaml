@@ -1,11 +1,12 @@
 {{- if .Values.ingress  -}}
-{{- $ingress := .Values.ingress }}
+{{- if .Values.ingress.kong  -}}
+{{- $ingress := .Values.ingress.kong }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
     {{- if and (hasKey $ingress "stripPath")}}
-    konghq.com/strip-path: "{{ .Values.ingress.stripPath }}"
+    konghq.com/strip-path: "{{ $ingress.stripPath }}"
     {{- end }}
   name: {{ $.Values.application.name }}-kong-ingress
   {{ include "metadata.namespace" $ }}
@@ -45,4 +46,5 @@ spec:
   tls:
     - hosts:
         - {{ .Values.ingress.host }}
+{{- end }}
 {{- end }}
