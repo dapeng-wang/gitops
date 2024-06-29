@@ -997,7 +997,7 @@ kong:
 
   # Kong Pod Disruption Budget
   podDisruptionBudget:
-    enabled: true
+    enabled: false
     # Uncomment only one of the following when enabled is set to true
     # maxUnavailable: "50%"
     minAvailable: "50%"
