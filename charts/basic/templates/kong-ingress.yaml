@@ -45,6 +45,6 @@ spec:
           {{- end }}
   tls:
     - hosts:
-        - {{ .Values.ingress.host }}
+        - {{ $ingress.host }}
 {{- end }}
 {{- end }}

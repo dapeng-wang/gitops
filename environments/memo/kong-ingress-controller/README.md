@@ -50,3 +50,59 @@ X-Kong-Request-Id: 6c3dca327fb6f27d0061e6316c9ddf7b
   "request_id":"6c3dca327fb6f27d0061e6316c9ddf7b"
 }%
 ```
+
+* Create a Kong Ingress
+```
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    konghq.com/strip-path: ''
+  labels:
+    app: tiny-api
+    argocd.argoproj.io/instance: tiny-api
+    type: backend
+  name: tiny-api-kong-ingress
+  namespace: memo
+spec:
+  ingressClassName: kong
+  rules:
+    - host: local.me
+      http:
+        paths:
+          - backend:
+              service:
+                name: tiny-api-service
+                port:
+                  number: 6666
+            path: /tiny
+            pathType: Prefix
+  tls:
+    - hosts:
+        - local.me
+```
+* Run test
+```
+curl -v --location 'http://local.me:30801/tiny/hello'
+* Host local.me:30801 was resolved.
+* IPv6: (none)
+* IPv4: 127.0.0.1
+*   Trying 127.0.0.1:30801...
+* Connected to local.me (127.0.0.1) port 30801
+> GET /tiny/hello HTTP/1.1
+> Host: local.me:30801
+> User-Agent: curl/8.6.0
+> Accept: */*
+> 
+< HTTP/1.1 200 OK
+< Content-Type: application/json;charset=UTF-8
+< Content-Length: 11
+< Connection: keep-alive
+< X-Kong-Upstream-Latency: 9
+< X-Kong-Proxy-Latency: 0
+< Via: kong/3.6.1
+< X-Kong-Request-Id: 26dddc4115418d256eb13215eaa42560
+< 
+* Connection #0 to host local.me left intact
+Hello World%                                    
+```
