@@ -4,9 +4,12 @@ basic:
     type: 'backend'
 
   ingress:
-    kong:
+    nginx:
       host: local.me
-      stripPath: ""
+      strip: "false"
+#    kong:
+#      host: local.me
+#      stripPath: ""
 
   deployment:
     replicaCount: 1
