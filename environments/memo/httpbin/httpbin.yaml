@@ -111,9 +111,7 @@ spec:
   type: LoadBalancer
   ports:
     - name: http
-      port: 8000
+      port: 18080
       targetPort: 8080
-    - name: tcp
-      port: 9000
   selector:
     app: httpbin
