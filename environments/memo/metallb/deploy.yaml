@@ -1941,4 +1941,4 @@ metadata:
   namespace: metallb-system
 spec:
   addresses:
-    - 192.168.2.240/24
+    - 172.17.1.0/24
