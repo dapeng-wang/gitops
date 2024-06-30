@@ -10,8 +10,10 @@ app-of-apps:
     - name: admin-ui
 #    - name: kong
 #      namespace: kong
-    - name: kong-ingress
-      namespace: kong
+#    - name: kong-ingress
+#      namespace: kong
+    - name: ingress-nginx
+      namespace: ingress-nginx
     - name: httpbin
       namespace: gloo
     - name: metallb
