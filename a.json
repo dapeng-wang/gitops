@@ -1,0 +1,104 @@
+{
+  "kind": "Service",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "httpbinlb",
+    "namespace": "gloo",
+    "uid": "7e2a0444-0119-4d98-8f91-e523e5168c60",
+    "resourceVersion": "12279532",
+    "creationTimestamp": "2024-06-30T17:30:28Z",
+    "labels": {
+      "app": "httpbin",
+      "argocd.argoproj.io/instance": "httpbin",
+      "service": "httpbin"
+    },
+    "annotations": {
+      "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"labels\":{\"app\":\"httpbin\",\"argocd.argoproj.io/instance\":\"httpbin\",\"service\":\"httpbin\"},\"name\":\"httpbinlb\",\"namespace\":\"gloo\"},\"spec\":{\"ports\":[{\"name\":\"http\",\"port\":8000,\"targetPort\":8080},{\"name\":\"tcp\",\"port\":9000}],\"selector\":{\"app\":\"httpbin\"},\"type\":\"LoadBalancer\"}}\n"
+    },
+    "managedFields": [
+      {
+        "manager": "argocd-controller",
+        "operation": "Update",
+        "apiVersion": "v1",
+        "time": "2024-06-30T17:30:28Z",
+        "fieldsType": "FieldsV1",
+        "fieldsV1": {
+          "f:metadata": {
+            "f:annotations": {
+              ".": {},
+              "f:kubectl.kubernetes.io/last-applied-configuration": {}
+            },
+            "f:labels": {
+              ".": {},
+              "f:app": {},
+              "f:argocd.argoproj.io/instance": {},
+              "f:service": {}
+            }
+          },
+          "f:spec": {
+            "f:allocateLoadBalancerNodePorts": {},
+            "f:externalTrafficPolicy": {},
+            "f:internalTrafficPolicy": {},
+            "f:ports": {
+              ".": {},
+              "k:{\"port\":8000,\"protocol\":\"TCP\"}": {
+                ".": {},
+                "f:name": {},
+                "f:port": {},
+                "f:protocol": {},
+                "f:targetPort": {}
+              },
+              "k:{\"port\":9000,\"protocol\":\"TCP\"}": {
+                ".": {},
+                "f:name": {},
+                "f:port": {},
+                "f:protocol": {},
+                "f:targetPort": {}
+              }
+            },
+            "f:selector": {},
+            "f:sessionAffinity": {},
+            "f:type": {}
+          }
+        }
+      }
+    ]
+  },
+  "spec": {
+    "ports": [
+      {
+        "name": "http",
+        "protocol": "TCP",
+        "port": 8000,
+        "targetPort": 8080,
+        "nodePort": 30202
+      },
+      {
+        "name": "tcp",
+        "protocol": "TCP",
+        "port": 9000,
+        "targetPort": 9000,
+        "nodePort": 32355
+      }
+    ],
+    "selector": {
+      "app": "httpbin"
+    },
+    "clusterIP": "10.98.24.184",
+    "clusterIPs": [
+      "10.98.24.184"
+    ],
+    "type": "LoadBalancer",
+    "sessionAffinity": "None",
+    "externalTrafficPolicy": "Cluster",
+    "ipFamilies": [
+      "IPv4"
+    ],
+    "ipFamilyPolicy": "SingleStack",
+    "allocateLoadBalancerNodePorts": true,
+    "internalTrafficPolicy": "Cluster"
+  },
+  "status": {
+    "loadBalancer": {}
+  }
+}
