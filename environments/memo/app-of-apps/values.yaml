@@ -3,8 +3,8 @@ app-of-apps:
   namespace: memo
   path: environments/memo
   prefixAppName: false
-  defaultValueFiles:
-    - ../.environment/values.yaml
+#  defaultValueFiles:
+#    - ../.environment/values.yaml
   applications:
     - name: tiny-api
     - name: admin-ui
@@ -12,6 +12,8 @@ app-of-apps:
 #      namespace: kong
     - name: kong-ingress
       namespace: kong
+    - name: httpbin
+      namespace: gloo
 #    - name: admin-manager
   syncPolicy:
     automated: # automated sync by default retries failed attempts 5 times with following delays between attempts ( 5s, 10s, 20s, 40s, 80s ); retry controlled using `retry` field.

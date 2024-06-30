@@ -150,6 +150,8 @@ extraObjects:
           server: 'https://kubernetes.default.svc'
         - namespace: kong
           server: 'https://kubernetes.default.svc'
+        - namespace: gloo
+          server: 'https://kubernetes.default.svc'
       clusterResourceWhitelist:
         - group: '*'
           kind: '*'
