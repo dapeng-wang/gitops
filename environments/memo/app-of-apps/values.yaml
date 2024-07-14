@@ -14,6 +14,8 @@ app-of-apps:
       namespace: kong
 #    - name: ingress-nginx
 #      namespace: ingress-nginx
+    - name: kong-httpbin-external-service
+      namespace: kong
     - name: httpbin
       namespace: gloo
     - name: metallb
