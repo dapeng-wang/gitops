@@ -25,5 +25,5 @@ argocd login argocd.me --insecure --username admin --password ex4DjwKusulGtdgY
 # Argocd Add Repo
 
 ```
-argocd repo add https://github.com/dapeng-wang/gitops.git --username dapeng-wang --password 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 --insecure-skip-server-verification --upsert
+argocd repo add https://github.com/dapeng-wang/gitops.git --username dapeng-wang --password AAA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AAA --insecure-skip-server-verification --upsert
 ```
