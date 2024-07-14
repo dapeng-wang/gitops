@@ -69,6 +69,53 @@ extraObjects:
   - apiVersion: networking.k8s.io/v1
     kind: Ingress
     metadata:
+      annotations:
+        konghq.com/strip-path: ''
+      labels:
+        app: argocd-kong-http-ingress
+      name: argocd-kong-http-ingress
+      namespace: argocd
+    spec:
+      ingressClassName: kong
+      rules:
+        - host: kong.me
+          http:
+            paths:
+              - backend:
+                  service:
+                    name: argocd-server
+                    port:
+                      name: http
+                path: /
+                pathType: Prefix
+      tls:
+        - hosts:
+            - kong.me
+  - apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: argocd-kong-grpc-ingress
+      namespace: argocd
+    spec:
+      ingressClassName: kong
+      rules:
+        - http:
+            paths:
+              - path: /
+                pathType: Prefix
+                backend:
+                  service:
+                    name: argocd-server
+                    port:
+                      name: https
+          host: grpc.kong.me
+      tls:
+        - hosts:
+            - grpc.kong.me
+          secretName: argocd-ingress-grpc
+  - apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
       name: argocd-server-http-ingress
       namespace: argocd
       annotations:
