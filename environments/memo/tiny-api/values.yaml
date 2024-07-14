@@ -7,9 +7,9 @@ basic:
     nginx:
       host: local.me
       strip: "false"
-#    kong:
-#      host: local.me
-#      stripPath: ""
+    kong:
+      host: local.me
+      stripPath: ""
 
   deployment:
     replicaCount: 1
