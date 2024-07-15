@@ -8,8 +8,6 @@ app-of-apps:
   applications:
     - name: tiny-api
     - name: admin-ui
-#    - name: ingress-nginx
-#      namespace: ingress-nginx
     - name: metallb
       namespace: metallb-system
 #    - name: admin-manager
