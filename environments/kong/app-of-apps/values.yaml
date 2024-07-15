@@ -1,7 +1,7 @@
 app-of-apps:
-  project: memo
-  namespace: memo
-  path: environments/memo
+  project: kong
+  namespace: kong
+  path: environments/kong
   prefixAppName: false
 #  defaultValueFiles:
 #    - ../.environment/values.yaml
