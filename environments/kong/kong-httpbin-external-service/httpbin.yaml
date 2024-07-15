@@ -41,7 +41,7 @@ spec:
     - matches:
         - path:
             type:
-            value: /httpbin
+            value: /httpbingw
       backendRefs:
         - name: proxy-to-httpbin
           kind: Service
