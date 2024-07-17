@@ -20,7 +20,7 @@ spec:
   rules:
     - http:
         paths:
-          - path: /httpbin
+          - path: /httpbinex
             pathType: ImplementationSpecific
             backend:
               service:
@@ -41,7 +41,7 @@ spec:
     - matches:
         - path:
             type:
-            value: /httpbingw
+            value: /httpbinexgw
       backendRefs:
         - name: proxy-to-httpbin
           kind: Service
