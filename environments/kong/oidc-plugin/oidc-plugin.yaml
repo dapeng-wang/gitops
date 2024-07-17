@@ -1,0 +1,13 @@
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: oidc-auth
+config:
+  issuer: http://local.me:8080/auth/realms/master/.well-known/openid-configuration
+  client_id:
+    - kong
+  client_secret:
+    - 7wLzblPD3d3zUeMUie4qjFgpYcFnoiuo
+  redirect_uri:
+    - http://127.0.0.1/echo
+plugin: openid-connect
