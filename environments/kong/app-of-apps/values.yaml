@@ -8,6 +8,8 @@ app-of-apps:
   applications:
 #    - name: kong
 #      namespace: kong
+    - name: echo
+      namespace: kong
     - name: kong-ingress
       namespace: kong
     - name: kong-gateway-api
