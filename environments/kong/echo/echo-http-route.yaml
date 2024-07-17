@@ -17,3 +17,24 @@ spec:
         - name: echo
           kind: Service
           port: 1027
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: echo
+  annotations:
+    konghq.com/strip-path: 'true'
+    konghq.com/plugins: oidc-auth
+spec:
+  ingressClassName: kong
+  rules:
+    - host: local.me
+      http:
+        paths:
+          - path: /echoin
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: echo
+                port:
+                  number: 1027
