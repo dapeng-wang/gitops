@@ -100,7 +100,7 @@ spec:
       backendRefs:
         - name: http
           kind: Service
-          port: 8000
+          port: 8080
 #---
 #apiVersion: v1
 #kind: Service
