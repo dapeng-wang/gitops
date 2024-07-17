@@ -4,6 +4,7 @@ metadata:
   name: echo
   annotations:
     konghq.com/strip-path: 'true'
+    konghq.com/plugins: oidc-auth
 spec:
   parentRefs:
     - name: kong
