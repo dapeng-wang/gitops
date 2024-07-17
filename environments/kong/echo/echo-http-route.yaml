@@ -28,10 +28,10 @@ metadata:
 spec:
   ingressClassName: kong
   rules:
-    - host: local.me
+    - host: kong.me
       http:
         paths:
-          - path: /echoin
+          - path: /echo
             pathType: ImplementationSpecific
             backend:
               service:
