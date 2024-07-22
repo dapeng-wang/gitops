@@ -295,3 +295,55 @@ extraObjects:
           - CreateNamespace=false
           - Replace=false
           - PrunePropagationPolicy=foreground
+  - apiVersion: argoproj.io/v1alpha1
+    kind: AppProject
+    metadata:
+      name: kyverno
+      namespace: argocd
+    spec:
+      description: KYVERNO
+      destinations:
+        - namespace: kyverno
+          server: 'https://kubernetes.default.svc'
+        - namespace: argocd
+          server: 'https://kubernetes.default.svc'
+      clusterResourceWhitelist:
+        - group: '*'
+          kind: '*'
+      orphanedResources:
+        warn: false
+      sourceRepos:
+        - '*'
+  - apiVersion: argoproj.io/v1alpha1
+    kind: Application
+    metadata:
+      name: kyverno-app-of-apps
+      namespace: argocd
+    spec:
+      destination:
+        namespace: argocd
+        server: 'https://kubernetes.default.svc'
+      project: kyverno
+      source:
+        path: environments/kyverno/app-of-apps/
+        repoURL: >-
+          https://github.com/dapeng-wang/gitops.git
+        targetRevision: main
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        retry:
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m
+          limit: 5
+        syncOptions:
+          - Validate=false
+          - PruneLast=true
+          - RespectIgnoreDifferences=true
+          - ApplyOutOfSyncOnly=true
+          - CreateNamespace=false
+          - Replace=false
+          - PrunePropagationPolicy=foreground
