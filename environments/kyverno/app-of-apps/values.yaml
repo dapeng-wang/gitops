@@ -7,8 +7,8 @@ app-of-apps:
   #    - ../.environment/values.yaml
   applications:
 #    - name: kyverno
-    - name: validation-policy
-    - name: mutation-policy
+#    - name: validation-policy
+#    - name: mutation-policy
 #    - name: generation-policy
   syncPolicy:
     automated: # automated sync by default retries failed attempts 5 times with following delays between attempts ( 5s, 10s, 20s, 40s, 80s ); retry controlled using `retry` field.
