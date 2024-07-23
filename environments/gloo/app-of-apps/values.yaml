@@ -7,6 +7,7 @@ app-of-apps:
   #    - ../.environment/values.yaml
   applications:
 #    - name: gloo-controlplane
+    - name: gloo-gateway
 #    - name: validation-policy
 #    - name: mutation-policy
 #    - name: generation-policy
