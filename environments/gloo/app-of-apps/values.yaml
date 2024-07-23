@@ -8,6 +8,8 @@ app-of-apps:
   applications:
 #    - name: gloo-controlplane
     - name: gloo-gateway
+    - name: httpbin
+      namespace: httpbin
 #    - name: validation-policy
 #    - name: mutation-policy
 #    - name: generation-policy

@@ -305,6 +305,8 @@ extraObjects:
       destinations:
         - namespace: gloo
           server: 'https://kubernetes.default.svc'
+        - namespace: httpbin
+          server: 'https://kubernetes.default.svc'
         - namespace: argocd
           server: 'https://kubernetes.default.svc'
       clusterResourceWhitelist:
