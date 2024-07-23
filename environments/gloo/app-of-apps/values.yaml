@@ -6,7 +6,7 @@ app-of-apps:
   #  defaultValueFiles:
   #    - ../.environment/values.yaml
   applications:
-#    - name: gloo
+    - name: gloo
 #    - name: validation-policy
 #    - name: mutation-policy
 #    - name: generation-policy
