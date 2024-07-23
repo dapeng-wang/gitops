@@ -5,5 +5,5 @@ version: 0.0.1
 appVersion: "0.0.1"
 dependencies:
   - name: gloo
-    version: 1.17.0
+    version: 1.18.0-beta9
     repository: https://storage.googleapis.com/solo-public-helm

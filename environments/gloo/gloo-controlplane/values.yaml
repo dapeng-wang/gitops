@@ -1,10 +1,10 @@
-gloo:
-  kubeGateway:
-    enabled: true
-  gloo:
-    disableLeaderElection: true
-  discovery:
-    enabled: false
-  gatewayProxies:
-    gatewayProxy:
-      disabled: true
+#gloo:
+#  kubeGateway:
+#    enabled: true
+#  gloo:
+#    disableLeaderElection: true
+#  discovery:
+#    enabled: false
+#  gatewayProxies:
+#    gatewayProxy:
+#      disabled: true

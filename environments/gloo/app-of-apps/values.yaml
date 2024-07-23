@@ -7,7 +7,7 @@ app-of-apps:
   #    - ../.environment/values.yaml
   applications:
 #    - name: gloo-controlplane
-    - name: gloo-gateway
+#    - name: gloo-gateway
     - name: httpbin
       namespace: httpbin
 #    - name: validation-policy
