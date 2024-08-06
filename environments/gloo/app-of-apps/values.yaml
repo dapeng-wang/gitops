@@ -8,6 +8,7 @@ app-of-apps:
   applications:
 #    - name: gloo-controlplane
     - name: gloo-gateway
+      namespace: gloo-system
 #    - name: httpbin
 #      namespace: httpbin
 #    - name: validation-policy
