@@ -1,3 +1,3 @@
 basic:
   application:
-    namespace: gloo
+    namespace: gloo-system
