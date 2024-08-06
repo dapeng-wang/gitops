@@ -1,6 +1,6 @@
 app-of-apps:
   project: gloo
-  namespace: gloo
+  namespace: gloo-system
   path: environments/gloo
   prefixAppName: false
   #  defaultValueFiles:
@@ -9,8 +9,8 @@ app-of-apps:
 #    - name: gloo-controlplane
     - name: gloo-gateway
       namespace: gloo-system
-#    - name: httpbin
-#      namespace: httpbin
+    - name: httpbin
+      namespace: httpbin
 #    - name: validation-policy
 #    - name: mutation-policy
 #    - name: generation-policy

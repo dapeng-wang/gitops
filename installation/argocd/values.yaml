@@ -303,7 +303,7 @@ extraObjects:
     spec:
       description: GLOO
       destinations:
-        - namespace: gloo
+        - namespace: gloo-system
           server: 'https://kubernetes.default.svc'
         - namespace: httpbin
           server: 'https://kubernetes.default.svc'
